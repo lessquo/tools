@@ -32,6 +32,7 @@ final class ModelStore {
     // MARK: - State
 
     var downloadStates: [String: DownloadState] = [:]
+    private var resolvedPaths: [String: URL] = [:]
 
     var selectedModelID: String {
         didSet { UserDefaults.standard.set(selectedModelID, forKey: "selectedModelID") }
@@ -275,6 +276,13 @@ final class ModelStore {
         if FileManager.default.fileExists(atPath: modelDir.path()) {
             try FileManager.default.removeItem(at: modelDir)
         }
+        if let repoID = Repo.ID(rawValue: model.id) {
+            let cacheDir = HubCache.default.repoDirectory(repo: repoID, kind: .model)
+            if FileManager.default.fileExists(atPath: cacheDir.path()) {
+                try FileManager.default.removeItem(at: cacheDir)
+            }
+        }
+        resolvedPaths[model.id] = nil
         downloadStates[model.id] = .notDownloaded
         if selectedModelID == model.id {
             selectedModelID = Self.available.first(where: {
@@ -286,7 +294,7 @@ final class ModelStore {
     // MARK: - Internal
 
     func modelDirectory(for modelID: String) -> URL {
-        modelsDirectory.appending(path: modelID)
+        resolvedPaths[modelID] ?? modelsDirectory.appending(path: modelID)
     }
 
     var selectedModel: CuratedModel? {
@@ -298,14 +306,25 @@ final class ModelStore {
     }
 
     func refreshDownloadStates() {
+        let cache = HubCache.default
         for model in Self.available {
-            let configFile = modelsDirectory
-                .appending(path: model.id)
-                .appending(path: "config.json")
-            if FileManager.default.fileExists(atPath: configFile.path()) {
+            let appDir = modelsDirectory.appending(path: model.id)
+            let configInApp = appDir.appending(path: "config.json")
+
+            if FileManager.default.fileExists(atPath: configInApp.path()) {
                 downloadStates[model.id] = .downloaded
+                resolvedPaths[model.id] = appDir
+            } else if let repoID = Repo.ID(rawValue: model.id),
+                      let cached = cache.cachedFilePath(
+                          repo: repoID, kind: .model, revision: "main",
+                          filename: "config.json"
+                      )
+            {
+                downloadStates[model.id] = .downloaded
+                resolvedPaths[model.id] = cached.deletingLastPathComponent()
             } else {
                 downloadStates[model.id] = .notDownloaded
+                resolvedPaths[model.id] = nil
             }
         }
     }
