@@ -1,0 +1,53 @@
+name: Tools
+options:
+  bundleIdPrefix: com.lessquo
+  deploymentTarget:
+    macOS: "14.0"
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+
+targets:
+  Tools-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Tools/Shared
+      - path: Tools/iOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lessquo.tools
+        PRODUCT_NAME: Tools
+        INFOPLIST_FILE: Tools/iOS/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Tools/iOS/Tools.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_PREVIEWS: YES
+        LD_RUNPATH_SEARCH_PATHS:
+          - $(inherited)
+    entitlements:
+      path: Tools/iOS/Tools.entitlements
+
+  Tools-macOS:
+    type: application
+    platform: macOS
+    sources:
+      - path: Tools/Shared
+      - path: Tools/macOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lessquo.tools
+        PRODUCT_NAME: Tools
+        INFOPLIST_FILE: Tools/macOS/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Tools/macOS/Tools.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_PREVIEWS: YES
+        COMBINE_HIDPI_IMAGES: YES
+        LD_RUNPATH_SEARCH_PATHS:
+          - $(inherited)
+          - "@executable_path/../Frameworks"
+    entitlements:
+      path: Tools/macOS/Tools.entitlements

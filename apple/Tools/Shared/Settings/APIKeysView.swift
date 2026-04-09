@@ -5,7 +5,7 @@ struct APIKeysView: View {
         Form {
             Text("API key management will go here.")
                 .foregroundStyle(.secondary)
-            Text("Keys are stored in macOS Keychain.")
+            Text("Keys are stored in Keychain.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
