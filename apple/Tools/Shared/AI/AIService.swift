@@ -1,8 +1,22 @@
+#if os(macOS)
 import Foundation
 
-/// Unified AI interface that routes to local MLX or remote API providers.
-class AIService {
-    // TODO: Implement unified AI interface
-    // - Local: MLXService for on-device inference
-    // - Remote: OpenAI, Anthropic, etc. via API keys
+@Observable
+@MainActor
+final class AIService {
+
+    let mlx = MLXService()
+
+    func loadModel(id: String, directory: URL) async throws {
+        try await mlx.loadModel(id: id, directory: directory)
+    }
+
+    func generate(prompt: String) async throws -> String {
+        try await mlx.generate(prompt: prompt)
+    }
+
+    var isProcessing: Bool {
+        mlx.state == .generating || mlx.state == .loading
+    }
 }
+#endif

@@ -10,6 +10,9 @@ packages:
   swift-huggingface:
     url: https://github.com/huggingface/swift-huggingface
     from: 0.1.0
+  mlx-swift-lm:
+    url: https://github.com/ml-explore/mlx-swift-lm
+    from: 2.31.3
 
 settings:
   base:
@@ -60,5 +63,9 @@ targets:
     dependencies:
       - package: swift-huggingface
         product: HuggingFace
+      - package: mlx-swift-lm
+        product: MLXLLM
+      - package: mlx-swift-lm
+        product: MLXLMCommon
     entitlements:
       path: Tools/macOS/Tools.entitlements

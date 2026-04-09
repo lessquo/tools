@@ -285,6 +285,18 @@ final class ModelStore {
 
     // MARK: - Internal
 
+    func modelDirectory(for modelID: String) -> URL {
+        modelsDirectory.appending(path: modelID)
+    }
+
+    var selectedModel: CuratedModel? {
+        Self.available.first { $0.id == selectedModelID }
+    }
+
+    var isSelectedModelDownloaded: Bool {
+        downloadStates[selectedModelID] == .downloaded
+    }
+
     func refreshDownloadStates() {
         for model in Self.available {
             let configFile = modelsDirectory
