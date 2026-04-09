@@ -13,7 +13,8 @@ struct MenuBarView: View {
             Divider()
 
             Button("Models...") {
-                openWindow(id: "models")
+                openWindow(id: "main")
+                NSApplication.shared.activate(ignoringOtherApps: true)
             }
 
             SettingsLink {

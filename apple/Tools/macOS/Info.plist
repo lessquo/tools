@@ -14,7 +14,5 @@
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
-	<key>LSUIElement</key>
-	<true/>
 </dict>
 </plist>
