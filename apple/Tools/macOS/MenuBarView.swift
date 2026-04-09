@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct MenuBarView: View {
+    @Environment(\.openWindow) private var openWindow
+
     var body: some View {
         VStack(spacing: 4) {
             Button("Text Action") {
@@ -11,7 +13,7 @@ struct MenuBarView: View {
             Divider()
 
             Button("Models...") {
-                // TODO: Open models window
+                openWindow(id: "models")
             }
 
             SettingsLink {
