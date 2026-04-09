@@ -57,8 +57,8 @@ final class TextActionPanel {
         let mouseLocation = NSEvent.mouseLocation
         let panelSize = hostingView.fittingSize
         var origin = CGPoint(
-            x: mouseLocation.x + 10,
-            y: mouseLocation.y - panelSize.height - 10
+            x: mouseLocation.x,
+            y: mouseLocation.y - panelSize.height
         )
 
         // Clamp to screen bounds

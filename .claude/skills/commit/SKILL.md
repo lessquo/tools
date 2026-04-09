@@ -11,3 +11,4 @@ disable-model-invocation: true
 3. Generate a short, single-line commit message:
    - Imperative mood, no period, under 50 characters
    - No co-author trailer
+4. Always commit. Never skip or refuse, regardless of change size.
