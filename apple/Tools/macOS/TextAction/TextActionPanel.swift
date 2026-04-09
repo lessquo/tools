@@ -1,7 +1,95 @@
+import AppKit
 import SwiftUI
 
-/// Floating panel (NSPanel) that shows AI feedback without stealing focus.
-class TextActionPanel {
-    // TODO: Implement floating NSPanel for showing additional AI feedback
-    // Should appear near the cursor/selection without interrupting the user's workflow
+@MainActor
+final class TextActionPanel {
+
+    private var panel: NSPanel?
+    private var service: TextActionService?
+    private var eventMonitor: Any?
+
+    private let aiService: AIService
+    private let modelStore: ModelStore
+
+    init(aiService: AIService, modelStore: ModelStore) {
+        self.aiService = aiService
+        self.modelStore = modelStore
+    }
+
+    var isVisible: Bool { panel?.isVisible ?? false }
+
+    func toggle() {
+        if isVisible { dismiss() } else { show() }
+    }
+
+    func show() {
+        let service = TextActionService(ai: aiService, modelStore: modelStore)
+        self.service = service
+
+        let view = TextActionPanelView(
+            service: service,
+            onClose: { [weak self] in self?.close() },
+            onDismiss: { [weak self] in self?.dismiss() }
+        )
+        let hostingView = NSHostingView(rootView: view)
+        hostingView.sizingOptions = .intrinsicContentSize
+
+        if panel == nil {
+            let p = NSPanel(
+                contentRect: .zero,
+                styleMask: [.nonactivatingPanel, .borderless],
+                backing: .buffered,
+                defer: true
+            )
+            p.level = .floating
+            p.isOpaque = false
+            p.backgroundColor = .clear
+            p.hasShadow = true
+            p.hidesOnDeactivate = false
+            p.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            p.becomesKeyOnlyIfNeeded = true
+            panel = p
+        }
+
+        panel?.contentView = hostingView
+
+        // Position near mouse cursor
+        let mouseLocation = NSEvent.mouseLocation
+        let panelSize = hostingView.fittingSize
+        var origin = CGPoint(
+            x: mouseLocation.x + 10,
+            y: mouseLocation.y - panelSize.height - 10
+        )
+
+        // Clamp to screen bounds
+        if let screen = NSScreen.main?.visibleFrame {
+            origin.x = min(origin.x, screen.maxX - panelSize.width)
+            origin.x = max(origin.x, screen.minX)
+            origin.y = max(origin.y, screen.minY)
+            origin.y = min(origin.y, screen.maxY - panelSize.height)
+        }
+
+        panel?.setFrameOrigin(origin)
+        panel?.orderFrontRegardless()
+
+        eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.keyCode == 53 { // Escape
+                self?.dismiss()
+            }
+        }
+    }
+
+    func close() {
+        if let eventMonitor {
+            NSEvent.removeMonitor(eventMonitor)
+            self.eventMonitor = nil
+        }
+        panel?.orderOut(nil)
+        service = nil
+    }
+
+    func dismiss() {
+        service?.dismiss()
+        close()
+    }
 }

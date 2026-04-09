@@ -47,6 +47,32 @@ final class MLXService {
         )
         return try await session.respond(to: prompt)
     }
+
+    func generateStream(prompt: String) -> AsyncThrowingStream<String, Error> {
+        guard let container else {
+            return AsyncThrowingStream { $0.finish(throwing: MLXServiceError.modelNotLoaded) }
+        }
+        state = .generating
+        let session = ChatSession(
+            container,
+            generateParameters: GenerateParameters(temperature: 0.0)
+        )
+        let upstream = session.streamResponse(to: prompt)
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    for try await chunk in upstream {
+                        continuation.yield(chunk)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+                await MainActor.run { [weak self] in self?.state = .ready }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
 }
 
 enum MLXServiceError: LocalizedError {

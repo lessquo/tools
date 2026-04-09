@@ -42,7 +42,8 @@ final class TextActionService {
     enum Status: Equatable {
         case idle
         case copying
-        case processing
+        case processing(original: String, result: String)
+        case ready(original: String, result: String)
         case pasting
         case error(String)
     }
@@ -52,60 +53,97 @@ final class TextActionService {
     private let clipboard = ClipboardService()
     private let ai: AIService
     private let modelStore: ModelStore
+    private var savedClipboard: String?
+    private var currentTask: Task<Void, Never>?
 
     init(ai: AIService, modelStore: ModelStore) {
         self.ai = ai
         self.modelStore = modelStore
     }
 
-    func perform(_ action: TextAction) async {
+    // MARK: - Phased API (for panel)
+
+    func copySelectedText() async -> String? {
         guard ClipboardService.checkAccessibilityPermission() else {
             ClipboardService.requestAccessibilityPermission()
             status = .error("Accessibility permission required")
-            return
+            return nil
         }
 
+        savedClipboard = clipboard.save()
+        status = .copying
+
+        do {
+            try await clipboard.simulateCopy()
+            guard let text = clipboard.read(), !text.isEmpty else {
+                clipboard.restore(savedClipboard)
+                status = .error("No text selected")
+                return nil
+            }
+            return text
+        } catch {
+            clipboard.restore(savedClipboard)
+            status = .error(error.localizedDescription)
+            return nil
+        }
+    }
+
+    func processAction(_ action: TextAction, text: String) async {
         guard modelStore.isSelectedModelDownloaded else {
             status = .error("No model downloaded")
             return
         }
 
-        let originalClipboard = clipboard.save()
+        status = .processing(original: text, result: "")
+
+        let modelID = modelStore.selectedModelID
+        let modelDir = modelStore.modelDirectory(for: modelID)
 
         do {
-            // Copy selected text
-            status = .copying
-            try await clipboard.simulateCopy()
-
-            guard let selectedText = clipboard.read(), !selectedText.isEmpty else {
-                clipboard.restore(originalClipboard)
-                status = .error("No text selected")
-                return
-            }
-
-            // Process with AI
-            status = .processing
-            let modelID = modelStore.selectedModelID
-            let modelDir = modelStore.modelDirectory(for: modelID)
-
             try await ai.loadModel(id: modelID, directory: modelDir)
-            let result = try await ai.generate(
-                prompt: action.buildPrompt(for: selectedText)
-            )
 
-            // Replace selection
-            status = .pasting
-            clipboard.write(result)
-            try await clipboard.simulatePaste()
-
-            // Restore original clipboard
-            try await Task.sleep(for: .milliseconds(200))
-            clipboard.restore(originalClipboard)
-
-            status = .idle
+            var result = ""
+            let stream = ai.generateStream(prompt: action.buildPrompt(for: text))
+            for try await chunk in stream {
+                result += chunk
+                status = .processing(original: text, result: result)
+            }
+            status = .ready(original: text, result: result)
         } catch {
-            clipboard.restore(originalClipboard)
             status = .error(error.localizedDescription)
         }
+    }
+
+    func applyResult() async {
+        guard case .ready(_, let result) = status else { return }
+
+        status = .pasting
+        clipboard.write(result)
+
+        do {
+            try await clipboard.simulatePaste()
+            try await Task.sleep(for: .milliseconds(200))
+            clipboard.restore(savedClipboard)
+            status = .idle
+        } catch {
+            clipboard.restore(savedClipboard)
+            status = .error(error.localizedDescription)
+        }
+    }
+
+    func dismiss() {
+        currentTask?.cancel()
+        currentTask = nil
+        clipboard.restore(savedClipboard)
+        status = .idle
+    }
+
+    // MARK: - One-shot API (for menu bar)
+
+    func perform(_ action: TextAction) async {
+        guard let text = await copySelectedText() else { return }
+        await processAction(action, text: text)
+        guard case .ready = status else { return }
+        await applyResult()
     }
 }

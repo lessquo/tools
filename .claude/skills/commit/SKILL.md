@@ -11,4 +11,3 @@ disable-model-invocation: true
 3. Generate a short, single-line commit message:
    - Imperative mood, no period, under 50 characters
    - No co-author trailer
-4. Present the message and ask the user to confirm before committing

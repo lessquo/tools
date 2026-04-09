@@ -15,6 +15,10 @@ final class AIService {
         try await mlx.generate(prompt: prompt)
     }
 
+    func generateStream(prompt: String) -> AsyncThrowingStream<String, Error> {
+        mlx.generateStream(prompt: prompt)
+    }
+
     var isProcessing: Bool {
         mlx.state == .generating || mlx.state == .loading
     }
