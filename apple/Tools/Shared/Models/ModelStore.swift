@@ -269,6 +269,10 @@ final class ModelStore {
         }
 
         downloadStates[modelID] = .downloaded
+
+        if !isSelectedModelDownloaded {
+            selectedModelID = modelID
+        }
     }
 
     func deleteDownload(_ model: CuratedModel) throws {
