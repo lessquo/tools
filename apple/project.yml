@@ -9,7 +9,7 @@ options:
 packages:
   swift-huggingface:
     url: https://github.com/huggingface/swift-huggingface
-    from: 0.1.0
+    from: 0.9.0
   mlx-swift-lm:
     url: https://github.com/ml-explore/mlx-swift-lm
     from: 2.31.3
