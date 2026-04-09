@@ -4,7 +4,6 @@ options:
   deploymentTarget:
     macOS: "14.0"
     iOS: "17.0"
-  xcodeVersion: "16.0"
 
 packages:
   swift-huggingface:
@@ -13,11 +12,6 @@ packages:
   mlx-swift-lm:
     url: https://github.com/ml-explore/mlx-swift-lm
     from: 2.31.3
-
-settings:
-  base:
-    SWIFT_VERSION: "6.0"
-    MACOSX_DEPLOYMENT_TARGET: "14.0"
 
 targets:
   Tools-iOS:
