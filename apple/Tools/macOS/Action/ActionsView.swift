@@ -80,6 +80,7 @@ struct ActionsView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .keyboardShortcut("n", modifiers: .command)
             }
         }
         .navigationTitle("Actions")
