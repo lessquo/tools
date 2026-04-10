@@ -59,10 +59,17 @@ struct ActionsView: View {
                     .id(selectedID)
                     .onAppear { focusNewActionID = nil }
                     .frame(minWidth: 300, maxWidth: .infinity)
+            } else if store.actions.isEmpty {
+                ContentUnavailableView(
+                    "No Actions",
+                    systemImage: "bolt",
+                    description: Text("Press ⌘N to create an action")
+                )
+                .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ContentUnavailableView(
                     "No Selection",
-                    systemImage: "text.bubble",
+                    systemImage: "bolt",
                     description: Text("Select an action to edit")
                 )
                 .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
