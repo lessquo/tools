@@ -9,14 +9,41 @@ final class ShortcutManager {
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+    private var pollingTimer: Timer?
 
     func start() {
         guard eventTap == nil else { return }
         guard ClipboardService.checkAccessibilityPermission() else {
             ClipboardService.requestAccessibilityPermission()
+            startPolling()
             return
         }
+        setupEventTap()
+    }
 
+    func stop() {
+        pollingTimer?.invalidate()
+        pollingTimer = nil
+        if let tap = eventTap {
+            CGEvent.tapEnable(tap: tap, enable: false)
+        }
+        if let source = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+        }
+        eventTap = nil
+        runLoopSource = nil
+    }
+
+    deinit {
+        pollingTimer?.invalidate()
+        if let source = runLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+        }
+    }
+
+    // MARK: - Private
+
+    private func setupEventTap() {
         let mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
         let userInfo = Unmanaged.passUnretained(self).toOpaque()
 
@@ -37,20 +64,21 @@ final class ShortcutManager {
         CGEvent.tapEnable(tap: tap, enable: true)
     }
 
-    func stop() {
-        if let tap = eventTap {
-            CGEvent.tapEnable(tap: tap, enable: false)
-        }
-        if let source = runLoopSource {
-            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
-        }
-        eventTap = nil
-        runLoopSource = nil
-    }
-
-    deinit {
-        if let source = runLoopSource {
-            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+    private func startPolling() {
+        pollingTimer?.invalidate()
+        pollingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.eventTap == nil else {
+                    self?.pollingTimer?.invalidate()
+                    self?.pollingTimer = nil
+                    return
+                }
+                if ClipboardService.checkAccessibilityPermission() {
+                    self.pollingTimer?.invalidate()
+                    self.pollingTimer = nil
+                    self.setupEventTap()
+                }
+            }
         }
     }
 }
