@@ -32,19 +32,13 @@ struct Action: Codable, Identifiable, Equatable {
     }
 
     func buildPrompt(for text: String) -> String {
-        """
-        \(instruction) Output ONLY the result, no explanations.
-
-        <input>
-        \(text)
-        </input>
-        """
+        instruction.replacingOccurrences(of: "{{input}}", with: text)
     }
 
     static let defaults: [Action] = [
-        Action(id: UUID(), name: "Fix Grammar", instruction: "Fix the grammar and spelling. Preserve the original language and tone."),
-        Action(id: UUID(), name: "Summarize", instruction: "Summarize concisely."),
-        Action(id: UUID(), name: "Translate to English", instruction: "Translate to English."),
+        Action(id: UUID(), name: "Fix Grammar", instruction: "Fix the grammar and spelling. Preserve the original language and tone. Output ONLY the result.\n\n{{input}}"),
+        Action(id: UUID(), name: "Summarize", instruction: "Summarize concisely. Output ONLY the result.\n\n{{input}}"),
+        Action(id: UUID(), name: "Translate to English", instruction: "Translate to English. Output ONLY the result.\n\n{{input}}"),
         Action(id: UUID(), name: "Sort Lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
         Action(id: UUID(), name: "Count Words", type: .script, script: "output = input.trim().split(/\\s+/).filter(w => w.length > 0).length + ' words'"),
     ]

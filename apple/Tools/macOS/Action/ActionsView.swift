@@ -145,7 +145,7 @@ private struct ActionDetailView: View {
 
             switch draft.type {
             case .llm:
-                Text("Instruction")
+                Text("Instruction — use {{input}} for selected text")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 TextEditor(text: $draft.instruction)
