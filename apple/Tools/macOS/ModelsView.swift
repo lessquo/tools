@@ -86,7 +86,6 @@ struct ModelsView: View {
             }
         }
         .navigationTitle("Models")
-        #if os(macOS)
         .toolbar {
             Button {
                 NSWorkspace.shared.open(store.cacheDirectory)
@@ -95,7 +94,6 @@ struct ModelsView: View {
             }
             .help("Show in Finder")
         }
-        #endif
     }
 }
 
