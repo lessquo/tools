@@ -102,30 +102,6 @@ extension ModelStore {
 
         // VLMs
         CuratedModel(
-            id: "mlx-community/gemma-4-26b-a4b-it-4bit",
-            name: "Gemma 4 26B-A4B",
-            summary: "26B MoE (4B active) · 4-bit · Vision",
-            size: "15.6 GB", sizeGB: 15.6,
-            avatar: "google",
-            kind: .vlm
-        ),
-        CuratedModel(
-            id: "mlx-community/gemma-3-12b-it-qat-4bit",
-            name: "Gemma 3 12B",
-            summary: "12B params · 4-bit · Vision",
-            size: "8.07 GB", sizeGB: 8.07,
-            avatar: "google",
-            kind: .vlm
-        ),
-        CuratedModel(
-            id: "mlx-community/gemma-4-e4b-it-4bit",
-            name: "Gemma 4 E4B",
-            summary: "4B params · 4-bit · Vision",
-            size: "5.25 GB", sizeGB: 5.25,
-            avatar: "google",
-            kind: .vlm
-        ),
-        CuratedModel(
             id: "mlx-community/Qwen2.5-VL-7B-Instruct-4bit",
             name: "Qwen 2.5 VL 7B",
             summary: "7B params · 4-bit · Vision",
