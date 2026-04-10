@@ -80,7 +80,7 @@ struct ActionPanelView: View {
                     .padding(.vertical, 8)
                 }
                 .buttonStyle(.bordered)
-                .tint(service.selectedActionIndex == index ? .accentColor : nil)
+                .tint(service.selectedActionIndex == index ? .accentColor : .secondary)
             }
         }
     }
@@ -173,9 +173,10 @@ struct ActionPanelView: View {
 private struct VisualEffectBackground: NSViewRepresentable {
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.material = .hudWindow
+        view.material = .sheet
         view.blendingMode = .behindWindow
         view.state = .active
+        view.isEmphasized = true
         return view
     }
 
