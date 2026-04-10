@@ -45,8 +45,6 @@ struct Action: Codable, Identifiable, Equatable {
         Action(id: UUID(), name: "Fix Grammar", instruction: "Fix the grammar and spelling. Preserve the original language and tone."),
         Action(id: UUID(), name: "Summarize", instruction: "Summarize concisely."),
         Action(id: UUID(), name: "Translate to English", instruction: "Translate to English."),
-        Action(id: UUID(), name: "Make Shorter", instruction: "Make shorter while preserving meaning."),
-        Action(id: UUID(), name: "Make Longer", instruction: "Expand with more detail while preserving meaning and tone."),
         Action(id: UUID(), name: "Sort Lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
         Action(id: UUID(), name: "Count Words", type: .script, script: "output = input.trim().split(/\\s+/).filter(w => w.length > 0).length + ' words'"),
     ]
