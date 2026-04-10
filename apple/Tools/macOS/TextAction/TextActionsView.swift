@@ -17,8 +17,19 @@ struct TextActionsView: View {
                         .frame(width: 16, alignment: .trailing)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(action.name)
-                        Text(action.instruction)
+                        HStack(spacing: 4) {
+                            Text(action.name)
+                            if action.type == .script {
+                                Text("JS")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 1)
+                                    .background(.secondary.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: 3))
+                            }
+                        }
+                        Text(action.type == .llm ? action.instruction : action.script)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -95,8 +106,13 @@ private struct TextActionEditorSheet: View {
     let onCancel: () -> Void
 
     private var isValid: Bool {
-        !action.name.trimmingCharacters(in: .whitespaces).isEmpty
-            && !action.instruction.trimmingCharacters(in: .whitespaces).isEmpty
+        let nameValid = !action.name.trimmingCharacters(in: .whitespaces).isEmpty
+        switch action.type {
+        case .llm:
+            return nameValid && !action.instruction.trimmingCharacters(in: .whitespaces).isEmpty
+        case .script:
+            return nameValid && !action.script.trimmingCharacters(in: .whitespaces).isEmpty
+        }
     }
 
     var body: some View {
@@ -107,13 +123,30 @@ private struct TextActionEditorSheet: View {
             TextField("Name", text: $action.name)
                 .textFieldStyle(.roundedBorder)
 
-            Text("Instruction")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            TextEditor(text: $action.instruction)
-                .font(.body)
-                .frame(minHeight: 80)
-                .border(Color.secondary.opacity(0.2))
+            Picker("Type", selection: $action.type) {
+                Text("LLM").tag(TextAction.ActionType.llm)
+                Text("Script").tag(TextAction.ActionType.script)
+            }
+            .pickerStyle(.segmented)
+
+            switch action.type {
+            case .llm:
+                Text("Instruction")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                TextEditor(text: $action.instruction)
+                    .font(.body)
+                    .frame(minHeight: 80)
+                    .border(Color.secondary.opacity(0.2))
+            case .script:
+                Text("JavaScript — read `input`, set `output`")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                TextEditor(text: $action.script)
+                    .font(.system(.body, design: .monospaced))
+                    .frame(minHeight: 80)
+                    .border(Color.secondary.opacity(0.2))
+            }
 
             HStack {
                 Button("Cancel") { onCancel() }

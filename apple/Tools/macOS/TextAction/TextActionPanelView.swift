@@ -69,6 +69,11 @@ struct TextActionPanelView: View {
                         Text("\(index + 1)")
                             .foregroundStyle(.tertiary)
                         Text(action.name)
+                        if action.type == .script {
+                            Image(systemName: "chevron.left.forwardslash.chevron.right")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
                     }
                     .font(.callout)
                     .frame(maxWidth: .infinity)
