@@ -14,6 +14,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         shortcutManager.onActivate = { [weak p] in
             p?.toggle()
         }
-        shortcutManager.start()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.shortcutManager.start()
+        }
     }
 }
