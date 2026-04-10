@@ -292,6 +292,8 @@ final class ModelStore {
         )
     }
 
+    var cacheDirectory: URL { cache.cacheDirectory }
+
     var selectedModel: CuratedModel? {
         Self.available.first { $0.id == selectedModelID }
     }
