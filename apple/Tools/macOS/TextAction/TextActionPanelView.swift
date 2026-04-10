@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TextActionPanelView: View {
     @Bindable var service: TextActionService
+    let actions: [TextAction]
     @FocusState private var isEditorFocused: Bool
     let onClose: () -> Void
     let onDismiss: () -> Void
@@ -12,7 +13,11 @@ struct TextActionPanelView: View {
         VStack(spacing: 0) {
             switch service.status {
             case .idle:
-                actionGrid
+                if actions.isEmpty {
+                    emptyState
+                } else {
+                    actionGrid
+                }
             case .copying:
                 statusLabel("Copying...", systemImage: "doc.on.clipboard")
             case .processing(_, let result):
@@ -35,8 +40,22 @@ struct TextActionPanelView: View {
 
     // MARK: - Action Grid
 
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Text("No actions configured.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Text("Open Tools to add actions.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+            Button("Dismiss") { onDismiss() }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+        }
+        .padding(.vertical, 8)
+    }
+
     private var actionGrid: some View {
-        let actions = TextAction.allCases
         let columns = [
             GridItem(.flexible()),
             GridItem(.flexible()),
@@ -49,7 +68,7 @@ struct TextActionPanelView: View {
                     HStack(spacing: 4) {
                         Text("\(index + 1)")
                             .foregroundStyle(.tertiary)
-                        Text(action.rawValue)
+                        Text(action.name)
                     }
                     .font(.callout)
                     .frame(maxWidth: .infinity)

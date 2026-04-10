@@ -1,28 +1,9 @@
 import Foundation
 
-enum TextAction: String, CaseIterable, Identifiable {
-    case fixGrammar = "Fix Grammar"
-    case summarize = "Summarize"
-    case translateEnglish = "Translate to English"
-    case makeShorter = "Make Shorter"
-    case makeLonger = "Make Longer"
-
-    var id: String { rawValue }
-
-    var instruction: String {
-        switch self {
-        case .fixGrammar:
-            "Fix the grammar and spelling. Preserve the original language and tone."
-        case .summarize:
-            "Summarize concisely."
-        case .translateEnglish:
-            "Translate to English."
-        case .makeShorter:
-            "Make shorter while preserving meaning."
-        case .makeLonger:
-            "Expand with more detail while preserving meaning and tone."
-        }
-    }
+struct TextAction: Codable, Identifiable, Equatable {
+    var id: UUID
+    var name: String
+    var instruction: String
 
     func buildPrompt(for text: String) -> String {
         """
@@ -33,6 +14,14 @@ enum TextAction: String, CaseIterable, Identifiable {
         </input>
         """
     }
+
+    static let defaults: [TextAction] = [
+        TextAction(id: UUID(), name: "Fix Grammar", instruction: "Fix the grammar and spelling. Preserve the original language and tone."),
+        TextAction(id: UUID(), name: "Summarize", instruction: "Summarize concisely."),
+        TextAction(id: UUID(), name: "Translate to English", instruction: "Translate to English."),
+        TextAction(id: UUID(), name: "Make Shorter", instruction: "Make shorter while preserving meaning."),
+        TextAction(id: UUID(), name: "Make Longer", instruction: "Expand with more detail while preserving meaning and tone."),
+    ]
 }
 
 @Observable

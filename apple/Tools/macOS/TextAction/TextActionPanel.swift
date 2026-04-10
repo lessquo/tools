@@ -15,10 +15,12 @@ final class TextActionPanel {
 
     private let aiService: AIService
     private let modelStore: ModelStore
+    private let textActionStore: TextActionStore
 
-    init(aiService: AIService, modelStore: ModelStore) {
+    init(aiService: AIService, modelStore: ModelStore, textActionStore: TextActionStore) {
         self.aiService = aiService
         self.modelStore = modelStore
+        self.textActionStore = textActionStore
     }
 
     var isVisible: Bool { panel?.isVisible ?? false }
@@ -33,6 +35,7 @@ final class TextActionPanel {
 
         let view = TextActionPanelView(
             service: service,
+            actions: textActionStore.actions,
             onClose: { [weak self] in self?.close() },
             onDismiss: { [weak self] in self?.dismiss() },
             onMakeKey: { [weak self] in self?.panel?.makeKey() },
@@ -89,10 +92,11 @@ final class TextActionPanel {
 
             guard let service = self.service, case .idle = service.status else { return event }
 
-            let actions = TextAction.allCases
+            let actions = self.textActionStore.actions
+            guard !actions.isEmpty else { return event }
             let columns = 2
 
-            // Number keys 1–5
+            // Number keys
             if let char = event.characters?.first,
                let num = Int(String(char)),
                num >= 1, num <= actions.count {
