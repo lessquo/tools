@@ -50,6 +50,7 @@ final class TextActionService {
 
     private(set) var status: Status = .idle
     var editedResult = ""
+    var selectedActionIndex = 0
 
     private let clipboard = ClipboardService()
     private let ai: AIService

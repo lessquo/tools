@@ -35,7 +35,8 @@ final class TextActionPanel {
             service: service,
             onClose: { [weak self] in self?.close() },
             onDismiss: { [weak self] in self?.dismiss() },
-            onMakeKey: { [weak self] in self?.panel?.makeKey() }
+            onMakeKey: { [weak self] in self?.panel?.makeKey() },
+            onTriggerAction: { [weak self] action in self?.triggerAction(action) }
         )
         let hostingView = NSHostingView(rootView: view)
         hostingView.sizingOptions = .intrinsicContentSize
@@ -77,13 +78,47 @@ final class TextActionPanel {
 
         panel?.setFrameOrigin(origin)
         panel?.orderFrontRegardless()
+        panel?.makeKey()
 
         globalEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.keyCode == 53 { self?.dismiss() }
         }
         localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.keyCode == 53 { self?.dismiss(); return nil }
-            return event
+            guard let self else { return event }
+            if event.keyCode == 53 { self.dismiss(); return nil }
+
+            guard let service = self.service, case .idle = service.status else { return event }
+
+            let actions = TextAction.allCases
+            let columns = 2
+
+            // Number keys 1–5
+            if let char = event.characters?.first,
+               let num = Int(String(char)),
+               num >= 1, num <= actions.count {
+                self.triggerAction(actions[num - 1])
+                return nil
+            }
+
+            switch event.keyCode {
+            case 126: // Up
+                service.selectedActionIndex = max(0, service.selectedActionIndex - columns)
+                return nil
+            case 125: // Down
+                service.selectedActionIndex = min(actions.count - 1, service.selectedActionIndex + columns)
+                return nil
+            case 123: // Left
+                service.selectedActionIndex = max(0, service.selectedActionIndex - 1)
+                return nil
+            case 124: // Right
+                service.selectedActionIndex = min(actions.count - 1, service.selectedActionIndex + 1)
+                return nil
+            case 36: // Return
+                self.triggerAction(actions[service.selectedActionIndex])
+                return nil
+            default:
+                return event
+            }
         }
     }
 
@@ -103,5 +138,14 @@ final class TextActionPanel {
     func dismiss() {
         service?.dismiss()
         close()
+    }
+
+    private func triggerAction(_ action: TextAction) {
+        guard let service else { return }
+        panel?.resignKey()
+        Task {
+            guard let text = await service.copySelectedText() else { return }
+            await service.processAction(action, text: text)
+        }
     }
 }

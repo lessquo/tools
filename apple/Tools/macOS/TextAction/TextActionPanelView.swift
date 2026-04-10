@@ -6,6 +6,7 @@ struct TextActionPanelView: View {
     let onClose: () -> Void
     let onDismiss: () -> Void
     let onMakeKey: () -> Void
+    let onTriggerAction: (TextAction) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -35,21 +36,27 @@ struct TextActionPanelView: View {
     // MARK: - Action Grid
 
     private var actionGrid: some View {
+        let actions = TextAction.allCases
         let columns = [
             GridItem(.flexible()),
             GridItem(.flexible()),
         ]
         return LazyVGrid(columns: columns, spacing: 8) {
-            ForEach(TextAction.allCases) { action in
+            ForEach(Array(actions.enumerated()), id: \.element.id) { index, action in
                 Button {
-                    triggerAction(action)
+                    onTriggerAction(action)
                 } label: {
-                    Text(action.rawValue)
-                        .font(.callout)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                    HStack(spacing: 4) {
+                        Text("\(index + 1)")
+                            .foregroundStyle(.tertiary)
+                        Text(action.rawValue)
+                    }
+                    .font(.callout)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
                 }
                 .buttonStyle(.bordered)
+                .tint(service.selectedActionIndex == index ? .accentColor : nil)
             }
         }
     }
@@ -134,15 +141,6 @@ struct TextActionPanelView: View {
                 .controlSize(.small)
         }
         .padding(.vertical, 8)
-    }
-
-    // MARK: - Actions
-
-    private func triggerAction(_ action: TextAction) {
-        Task {
-            guard let text = await service.copySelectedText() else { return }
-            await service.processAction(action, text: text)
-        }
     }
 }
 
