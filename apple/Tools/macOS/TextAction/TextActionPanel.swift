@@ -10,7 +10,8 @@ final class TextActionPanel {
 
     private var panel: NSPanel?
     private var service: TextActionService?
-    private var eventMonitor: Any?
+    private var globalEventMonitor: Any?
+    private var localEventMonitor: Any?
 
     private let aiService: AIService
     private let modelStore: ModelStore
@@ -77,17 +78,23 @@ final class TextActionPanel {
         panel?.setFrameOrigin(origin)
         panel?.orderFrontRegardless()
 
-        eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.keyCode == 53 { // Escape
-                self?.dismiss()
-            }
+        globalEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.keyCode == 53 { self?.dismiss() }
+        }
+        localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.keyCode == 53 { self?.dismiss(); return nil }
+            return event
         }
     }
 
     func close() {
-        if let eventMonitor {
-            NSEvent.removeMonitor(eventMonitor)
-            self.eventMonitor = nil
+        if let globalEventMonitor {
+            NSEvent.removeMonitor(globalEventMonitor)
+            self.globalEventMonitor = nil
+        }
+        if let localEventMonitor {
+            NSEvent.removeMonitor(localEventMonitor)
+            self.localEventMonitor = nil
         }
         panel?.orderOut(nil)
         service = nil
