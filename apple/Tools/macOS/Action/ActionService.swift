@@ -11,14 +11,14 @@ struct Action: Codable, Identifiable, Equatable {
     var id: UUID
     var name: String
     var type: ActionType
-    var instruction: String
+    var prompt: String
     var script: String
 
-    init(id: UUID, name: String, type: ActionType = .llm, instruction: String = "", script: String = "") {
+    init(id: UUID, name: String, type: ActionType = .llm, prompt: String = "", script: String = "") {
         self.id = id
         self.name = name
         self.type = type
-        self.instruction = instruction
+        self.prompt = prompt
         self.script = script
     }
 
@@ -27,18 +27,15 @@ struct Action: Codable, Identifiable, Equatable {
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         type = try container.decodeIfPresent(ActionType.self, forKey: .type) ?? .llm
-        instruction = try container.decodeIfPresent(String.self, forKey: .instruction) ?? ""
+        prompt = try container.decodeIfPresent(String.self, forKey: .prompt) ?? ""
         script = try container.decodeIfPresent(String.self, forKey: .script) ?? ""
     }
 
-    func buildPrompt(for text: String) -> String {
-        instruction.replacingOccurrences(of: "{{input}}", with: text)
-    }
 
     static let defaults: [Action] = [
-        Action(id: UUID(), name: "Fix Grammar", instruction: "Fix the grammar and spelling. Preserve the original language and tone. Output ONLY the result.\n\n{{input}}"),
-        Action(id: UUID(), name: "Summarize", instruction: "Summarize concisely. Output ONLY the result.\n\n{{input}}"),
-        Action(id: UUID(), name: "Translate to English", instruction: "Translate to English. Output ONLY the result.\n\n{{input}}"),
+        Action(id: UUID(), name: "Fix Grammar", prompt: "Fix the grammar and spelling. Preserve the original language and tone. Output ONLY the result.\n\n{{input}}"),
+        Action(id: UUID(), name: "Summarize", prompt: "Summarize concisely. Output ONLY the result.\n\n{{input}}"),
+        Action(id: UUID(), name: "Translate to English", prompt: "Translate to English. Output ONLY the result.\n\n{{input}}"),
         Action(id: UUID(), name: "Sort Lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
         Action(id: UUID(), name: "Count Words", type: .script, script: "output = input.trim().split(/\\s+/).filter(w => w.length > 0).length + ' words'"),
     ]
@@ -123,7 +120,7 @@ final class ActionService {
             try await ai.loadModel(id: modelID, directory: modelDir)
 
             var result = ""
-            let stream = ai.generateStream(prompt: action.buildPrompt(for: text))
+            let stream = ai.generateStream(prompt: action.prompt.replacingOccurrences(of: "{{input}}", with: text))
             for try await chunk in stream {
                 result += chunk
                 status = .processing(original: text, result: result)

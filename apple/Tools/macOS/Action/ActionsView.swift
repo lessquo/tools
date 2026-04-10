@@ -23,7 +23,7 @@ struct ActionsView: View {
                                     Text("JS").badgeStyle()
                                 }
                             }
-                            Text(action.type == .llm ? action.instruction : action.script)
+                            Text(action.type == .llm ? action.prompt : action.script)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
@@ -102,7 +102,7 @@ struct ActionsView: View {
     }
 
     private func addNew() {
-        let action = Action(id: UUID(), name: "", instruction: "")
+        let action = Action(id: UUID(), name: "", prompt: "")
         store.add(action)
         focusNewActionID = action.id
         selectedActionID = action.id
@@ -145,10 +145,10 @@ private struct ActionDetailView: View {
 
             switch draft.type {
             case .llm:
-                Text("Instruction — use {{input}} for selected text")
+                Text("Prompt — use {{input}} for selected text")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                TextEditor(text: $draft.instruction)
+                TextEditor(text: $draft.prompt)
                     .font(.body)
             case .script:
                 Text("JavaScript — read `input`, set `output`")
