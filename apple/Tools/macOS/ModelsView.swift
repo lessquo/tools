@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ModelsView: View {
     @Environment(ModelStore.self) private var store
+    @State private var errorMessage: String?
 
     var body: some View {
         List(ModelStore.available) { model in
@@ -17,22 +18,9 @@ struct ModelsView: View {
                     HStack(spacing: 4) {
                         Text(model.name)
                         switch model.kind {
-                        case .vlm:
-                            Text("Vision")
-                                .font(.caption2)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 1)
-                                .background(.quaternary)
-                                .clipShape(RoundedRectangle(cornerRadius: 3))
-                        case .stt:
-                            Text("Speech")
-                                .font(.caption2)
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 1)
-                                .background(.quaternary)
-                                .clipShape(RoundedRectangle(cornerRadius: 3))
-                        case .llm:
-                            EmptyView()
+                        case .vlm: Text("Vision").badgeStyle()
+                        case .stt: Text("Speech").badgeStyle()
+                        case .llm: EmptyView()
                         }
                     }
                     Text("\(model.summary) · \(model.size)")
@@ -50,8 +38,13 @@ struct ModelsView: View {
                 switch state {
                 case .notDownloaded:
                     Button {
-                        // TODO: Surface download errors to the user
-                        Task { try? await store.download(model) }
+                        Task {
+                            do {
+                                try await store.download(model)
+                            } catch {
+                                errorMessage = error.localizedDescription
+                            }
+                        }
                     } label: {
                         Image(systemName: "arrow.down.circle")
                     }
@@ -84,6 +77,14 @@ struct ModelsView: View {
                     store.selectedModelID = model.id
                 }
             }
+        }
+        .alert("Download Failed", isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "")
         }
         .navigationTitle("Models")
         .toolbar {

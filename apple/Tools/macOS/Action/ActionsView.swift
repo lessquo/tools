@@ -20,13 +20,7 @@ struct ActionsView: View {
                             HStack(spacing: 4) {
                                 Text(action.name.isEmpty ? "Untitled" : action.name)
                                 if action.type == .script {
-                                    Text("JS")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                        .padding(.horizontal, 4)
-                                        .padding(.vertical, 1)
-                                        .background(.secondary.opacity(0.1))
-                                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                                    Text("JS").badgeStyle()
                                 }
                             }
                             Text(action.type == .llm ? action.instruction : action.script)

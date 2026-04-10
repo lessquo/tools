@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import SwiftUI
 
 private class KeyablePanel: NSPanel {
@@ -84,17 +85,18 @@ final class ActionPanel {
         panel?.makeKey()
 
         globalEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if event.keyCode == 53 { self?.dismiss() }
+            if Int(event.keyCode) == kVK_Escape { self?.dismiss() }
         }
         localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return event }
-            if event.keyCode == 53 { self.dismiss(); return nil }
+            let keyCode = Int(event.keyCode)
+            if keyCode == kVK_Escape { self.dismiss(); return nil }
 
             guard let service = self.service else { return event }
 
             // ⌘↩ to apply result (keyboardShortcut doesn't work on nonactivatingPanel)
             if case .ready = service.status,
-               event.keyCode == 36,
+               keyCode == kVK_Return,
                event.modifierFlags.contains(.command) {
                 self.close()
                 Task { await service.applyResult() }
@@ -115,20 +117,20 @@ final class ActionPanel {
                 return nil
             }
 
-            switch event.keyCode {
-            case 126: // Up
+            switch keyCode {
+            case kVK_UpArrow:
                 service.selectedActionIndex = max(0, service.selectedActionIndex - columns)
                 return nil
-            case 125: // Down
+            case kVK_DownArrow:
                 service.selectedActionIndex = min(actions.count - 1, service.selectedActionIndex + columns)
                 return nil
-            case 123: // Left
+            case kVK_LeftArrow:
                 service.selectedActionIndex = max(0, service.selectedActionIndex - 1)
                 return nil
-            case 124: // Right
+            case kVK_RightArrow:
                 service.selectedActionIndex = min(actions.count - 1, service.selectedActionIndex + 1)
                 return nil
-            case 36: // Return
+            case kVK_Return:
                 self.triggerAction(actions[service.selectedActionIndex])
                 return nil
             default:
