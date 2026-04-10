@@ -2,28 +2,28 @@ import Foundation
 
 @Observable
 @MainActor
-final class TextActionStore {
+final class ActionStore {
 
-    private static let storageKey = "textActions"
+    private static let storageKey = "actions"
 
-    private(set) var actions: [TextAction] = []
+    private(set) var actions: [Action] = []
 
     init() {
         if let data = UserDefaults.standard.data(forKey: Self.storageKey),
-           let decoded = try? JSONDecoder().decode([TextAction].self, from: data) {
+           let decoded = try? JSONDecoder().decode([Action].self, from: data) {
             actions = decoded
         } else {
-            actions = TextAction.defaults
+            actions = Action.defaults
             save()
         }
     }
 
-    func add(_ action: TextAction) {
+    func add(_ action: Action) {
         actions.append(action)
         save()
     }
 
-    func update(_ action: TextAction) {
+    func update(_ action: Action) {
         guard let index = actions.firstIndex(where: { $0.id == action.id }) else { return }
         actions[index] = action
         save()
@@ -40,7 +40,7 @@ final class TextActionStore {
     }
 
     func resetToDefaults() {
-        actions = TextAction.defaults
+        actions = Action.defaults
         save()
     }
 

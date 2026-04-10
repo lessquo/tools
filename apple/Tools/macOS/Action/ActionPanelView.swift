@@ -1,13 +1,13 @@
 import SwiftUI
 
-struct TextActionPanelView: View {
-    @Bindable var service: TextActionService
-    let actions: [TextAction]
+struct ActionPanelView: View {
+    @Bindable var service: ActionService
+    let actions: [Action]
     @FocusState private var isEditorFocused: Bool
     let onClose: () -> Void
     let onDismiss: () -> Void
     let onMakeKey: () -> Void
-    let onTriggerAction: (TextAction) -> Void
+    let onTriggerAction: (Action) -> Void
 
     var body: some View {
         VStack(spacing: 0) {

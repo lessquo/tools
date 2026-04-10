@@ -6,21 +6,21 @@ private class KeyablePanel: NSPanel {
 }
 
 @MainActor
-final class TextActionPanel {
+final class ActionPanel {
 
     private var panel: NSPanel?
-    private var service: TextActionService?
+    private var service: ActionService?
     private var globalEventMonitor: Any?
     private var localEventMonitor: Any?
 
     private let aiService: AIService
     private let modelStore: ModelStore
-    private let textActionStore: TextActionStore
+    private let actionStore: ActionStore
 
-    init(aiService: AIService, modelStore: ModelStore, textActionStore: TextActionStore) {
+    init(aiService: AIService, modelStore: ModelStore, actionStore: ActionStore) {
         self.aiService = aiService
         self.modelStore = modelStore
-        self.textActionStore = textActionStore
+        self.actionStore = actionStore
     }
 
     var isVisible: Bool { panel?.isVisible ?? false }
@@ -30,12 +30,12 @@ final class TextActionPanel {
     }
 
     func show() {
-        let service = TextActionService(ai: aiService, modelStore: modelStore)
+        let service = ActionService(ai: aiService, modelStore: modelStore)
         self.service = service
 
-        let view = TextActionPanelView(
+        let view = ActionPanelView(
             service: service,
-            actions: textActionStore.actions,
+            actions: actionStore.actions,
             onClose: { [weak self] in self?.close() },
             onDismiss: { [weak self] in self?.dismiss() },
             onMakeKey: { [weak self] in self?.panel?.makeKey() },
@@ -92,7 +92,7 @@ final class TextActionPanel {
 
             guard let service = self.service, case .idle = service.status else { return event }
 
-            let actions = self.textActionStore.actions
+            let actions = self.actionStore.actions
             guard !actions.isEmpty else { return event }
             let columns = 2
 
@@ -144,7 +144,7 @@ final class TextActionPanel {
         close()
     }
 
-    private func triggerAction(_ action: TextAction) {
+    private func triggerAction(_ action: Action) {
         guard let service else { return }
         panel?.resignKey()
         Task {

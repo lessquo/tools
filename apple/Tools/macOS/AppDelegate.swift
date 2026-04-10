@@ -4,12 +4,12 @@ import AppKit
 class AppDelegate: NSObject, NSApplicationDelegate {
     let modelStore = ModelStore()
     let aiService = AIService()
-    let textActionStore = TextActionStore()
+    let actionStore = ActionStore()
     private let shortcutManager = ShortcutManager()
-    private var panel: TextActionPanel?
+    private var panel: ActionPanel?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let p = TextActionPanel(aiService: aiService, modelStore: modelStore, textActionStore: textActionStore)
+        let p = ActionPanel(aiService: aiService, modelStore: modelStore, actionStore: actionStore)
         panel = p
         shortcutManager.onActivate = { [weak p] in
             p?.toggle()

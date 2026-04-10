@@ -1,7 +1,7 @@
 import Foundation
 import JavaScriptCore
 
-struct TextAction: Codable, Identifiable, Equatable {
+struct Action: Codable, Identifiable, Equatable {
 
     enum ActionType: String, Codable, CaseIterable {
         case llm
@@ -41,20 +41,20 @@ struct TextAction: Codable, Identifiable, Equatable {
         """
     }
 
-    static let defaults: [TextAction] = [
-        TextAction(id: UUID(), name: "Fix Grammar", instruction: "Fix the grammar and spelling. Preserve the original language and tone."),
-        TextAction(id: UUID(), name: "Summarize", instruction: "Summarize concisely."),
-        TextAction(id: UUID(), name: "Translate to English", instruction: "Translate to English."),
-        TextAction(id: UUID(), name: "Make Shorter", instruction: "Make shorter while preserving meaning."),
-        TextAction(id: UUID(), name: "Make Longer", instruction: "Expand with more detail while preserving meaning and tone."),
-        TextAction(id: UUID(), name: "Sort Lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
-        TextAction(id: UUID(), name: "Count Words", type: .script, script: "output = input.trim().split(/\\s+/).filter(w => w.length > 0).length + ' words'"),
+    static let defaults: [Action] = [
+        Action(id: UUID(), name: "Fix Grammar", instruction: "Fix the grammar and spelling. Preserve the original language and tone."),
+        Action(id: UUID(), name: "Summarize", instruction: "Summarize concisely."),
+        Action(id: UUID(), name: "Translate to English", instruction: "Translate to English."),
+        Action(id: UUID(), name: "Make Shorter", instruction: "Make shorter while preserving meaning."),
+        Action(id: UUID(), name: "Make Longer", instruction: "Expand with more detail while preserving meaning and tone."),
+        Action(id: UUID(), name: "Sort Lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
+        Action(id: UUID(), name: "Count Words", type: .script, script: "output = input.trim().split(/\\s+/).filter(w => w.length > 0).length + ' words'"),
     ]
 }
 
 @Observable
 @MainActor
-final class TextActionService {
+final class ActionService {
 
     enum Status: Equatable {
         case idle
@@ -107,7 +107,7 @@ final class TextActionService {
         }
     }
 
-    func processAction(_ action: TextAction, text: String) async {
+    func processAction(_ action: Action, text: String) async {
         switch action.type {
         case .llm:
             await processLLMAction(action, text: text)
@@ -116,7 +116,7 @@ final class TextActionService {
         }
     }
 
-    private func processLLMAction(_ action: TextAction, text: String) async {
+    private func processLLMAction(_ action: Action, text: String) async {
         guard modelStore.isSelectedModelDownloaded else {
             status = .error("No model downloaded")
             return
@@ -143,7 +143,7 @@ final class TextActionService {
         }
     }
 
-    private func processScriptAction(_ action: TextAction, text: String) async {
+    private func processScriptAction(_ action: Action, text: String) async {
         status = .processing(original: text, result: "")
 
         do {
@@ -227,7 +227,7 @@ final class TextActionService {
 
     // MARK: - One-shot API (for menu bar)
 
-    func perform(_ action: TextAction) async {
+    func perform(_ action: Action) async {
         guard let text = await copySelectedText() else { return }
         await processAction(action, text: text)
         guard case .ready = status else { return }

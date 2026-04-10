@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct TextActionsView: View {
-    @Environment(TextActionStore.self) private var store
+struct ActionsView: View {
+    @Environment(ActionStore.self) private var store
     @State private var selectedActionID: UUID?
     @State private var showResetConfirmation = false
 
@@ -54,7 +54,7 @@ struct TextActionsView: View {
 
             if let selectedID = selectedActionID,
                let action = store.actions.first(where: { $0.id == selectedID }) {
-                TextActionDetailView(action: action)
+                ActionDetailView(action: action)
                     .id(selectedID)
                     .frame(minWidth: 300, maxWidth: .infinity)
             } else {
@@ -80,7 +80,7 @@ struct TextActionsView: View {
                 }
             }
         }
-        .navigationTitle("Text Actions")
+        .navigationTitle("Actions")
         .alert("Reset to Defaults?", isPresented: $showResetConfirmation) {
             Button("Reset", role: .destructive) {
                 store.resetToDefaults()
@@ -98,12 +98,12 @@ struct TextActionsView: View {
     }
 
     private func addNew() {
-        let action = TextAction(id: UUID(), name: "", instruction: "")
+        let action = Action(id: UUID(), name: "", instruction: "")
         store.add(action)
         selectedActionID = action.id
     }
 
-    private func delete(_ action: TextAction) {
+    private func delete(_ action: Action) {
         guard let idx = store.actions.firstIndex(where: { $0.id == action.id }) else { return }
         let wasSelected = selectedActionID == action.id
         store.delete(at: IndexSet(integer: idx))
@@ -114,11 +114,11 @@ struct TextActionsView: View {
     }
 }
 
-private struct TextActionDetailView: View {
-    @Environment(TextActionStore.self) private var store
-    @State private var draft: TextAction
+private struct ActionDetailView: View {
+    @Environment(ActionStore.self) private var store
+    @State private var draft: Action
 
-    init(action: TextAction) {
+    init(action: Action) {
         self._draft = State(initialValue: action)
     }
 
@@ -128,8 +128,8 @@ private struct TextActionDetailView: View {
                 .textFieldStyle(.roundedBorder)
 
             Picker("Type", selection: $draft.type) {
-                Text("LLM").tag(TextAction.ActionType.llm)
-                Text("Script").tag(TextAction.ActionType.script)
+                Text("LLM").tag(Action.ActionType.llm)
+                Text("Script").tag(Action.ActionType.script)
             }
             .pickerStyle(.segmented)
             .fixedSize()
@@ -157,6 +157,6 @@ private struct TextActionDetailView: View {
 }
 
 #Preview {
-    TextActionsView()
-        .environment(TextActionStore())
+    ActionsView()
+        .environment(ActionStore())
 }
