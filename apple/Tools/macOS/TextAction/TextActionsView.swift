@@ -2,62 +2,69 @@ import SwiftUI
 
 struct TextActionsView: View {
     @Environment(TextActionStore.self) private var store
-    @State private var editingAction: TextAction?
-    @State private var isAddingNew = false
+    @State private var selectedActionID: UUID?
     @State private var showResetConfirmation = false
 
     var body: some View {
-        @Bindable var store = store
-        List {
-            ForEach(Array(store.actions.enumerated()), id: \.element.id) { index, action in
-                HStack {
-                    Text("\(index + 1)")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .frame(width: 16, alignment: .trailing)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Text(action.name)
-                            if action.type == .script {
-                                Text("JS")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 1)
-                                    .background(.secondary.opacity(0.1))
-                                    .clipShape(RoundedRectangle(cornerRadius: 3))
-                            }
-                        }
-                        Text(action.type == .llm ? action.instruction : action.script)
+        HSplitView {
+            List(selection: $selectedActionID) {
+                ForEach(Array(store.actions.enumerated()), id: \.element.id) { index, action in
+                    HStack {
+                        Text("\(index + 1)")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
+                            .foregroundStyle(.tertiary)
+                            .frame(width: 16, alignment: .trailing)
 
-                    Spacer()
-
-                    Menu {
-                        Button("Edit") {
-                            editingAction = action
-                        }
-                        Button("Delete", role: .destructive) {
-                            if let idx = store.actions.firstIndex(where: { $0.id == action.id }) {
-                                store.delete(at: IndexSet(integer: idx))
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 4) {
+                                Text(action.name.isEmpty ? "Untitled" : action.name)
+                                if action.type == .script {
+                                    Text("JS")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .padding(.horizontal, 4)
+                                        .padding(.vertical, 1)
+                                        .background(.secondary.opacity(0.1))
+                                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                                }
                             }
+                            Text(action.type == .llm ? action.instruction : action.script)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
                     }
-                    .menuStyle(.borderlessButton)
+                    .tag(action.id)
+                    .padding(.vertical, 4)
+                    .contextMenu {
+                        Button("Delete", role: .destructive) {
+                            delete(action)
+                        }
+                    }
                 }
-                .padding(.vertical, 4)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    editingAction = action
+                .onMove { store.move(from: $0, to: $1) }
+            }
+            .frame(minWidth: 180, idealWidth: 220, maxWidth: 280)
+            .onDeleteCommand {
+                if let id = selectedActionID,
+                   let action = store.actions.first(where: { $0.id == id }) {
+                    delete(action)
                 }
             }
-            .onMove { store.move(from: $0, to: $1) }
+
+            if let selectedID = selectedActionID,
+               let action = store.actions.first(where: { $0.id == selectedID }) {
+                TextActionDetailView(action: action)
+                    .id(selectedID)
+                    .frame(minWidth: 300, maxWidth: .infinity)
+            } else {
+                ContentUnavailableView(
+                    "No Selection",
+                    systemImage: "text.bubble",
+                    description: Text("Select an action to edit")
+                )
+                .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
         .toolbar {
             ToolbarItem {
@@ -67,97 +74,89 @@ struct TextActionsView: View {
             }
             ToolbarItem {
                 Button {
-                    isAddingNew = true
+                    addNew()
                 } label: {
                     Image(systemName: "plus")
                 }
             }
         }
-        .sheet(item: $editingAction) { action in
-            TextActionEditorSheet(action: action) { updated in
-                store.update(updated)
-                editingAction = nil
-            } onCancel: {
-                editingAction = nil
-            }
-        }
-        .sheet(isPresented: $isAddingNew) {
-            TextActionEditorSheet(action: TextAction(id: UUID(), name: "", instruction: "")) { newAction in
-                store.add(newAction)
-                isAddingNew = false
-            } onCancel: {
-                isAddingNew = false
-            }
-        }
         .navigationTitle("Text Actions")
         .alert("Reset to Defaults?", isPresented: $showResetConfirmation) {
-            Button("Reset", role: .destructive) { store.resetToDefaults() }
+            Button("Reset", role: .destructive) {
+                store.resetToDefaults()
+                selectedActionID = store.actions.first?.id
+            }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This will replace all your custom actions with the defaults.")
         }
+        .task {
+            if selectedActionID == nil {
+                selectedActionID = store.actions.first?.id
+            }
+        }
     }
 
+    private func addNew() {
+        let action = TextAction(id: UUID(), name: "", instruction: "")
+        store.add(action)
+        selectedActionID = action.id
+    }
+
+    private func delete(_ action: TextAction) {
+        guard let idx = store.actions.firstIndex(where: { $0.id == action.id }) else { return }
+        let wasSelected = selectedActionID == action.id
+        store.delete(at: IndexSet(integer: idx))
+        if wasSelected {
+            let newIndex = min(idx, store.actions.count - 1)
+            selectedActionID = newIndex >= 0 ? store.actions[newIndex].id : nil
+        }
+    }
 }
 
-private struct TextActionEditorSheet: View {
-    @State var action: TextAction
-    let onSave: (TextAction) -> Void
-    let onCancel: () -> Void
+private struct TextActionDetailView: View {
+    @Environment(TextActionStore.self) private var store
+    @State private var draft: TextAction
 
-    private var isValid: Bool {
-        let nameValid = !action.name.trimmingCharacters(in: .whitespaces).isEmpty
-        switch action.type {
-        case .llm:
-            return nameValid && !action.instruction.trimmingCharacters(in: .whitespaces).isEmpty
-        case .script:
-            return nameValid && !action.script.trimmingCharacters(in: .whitespaces).isEmpty
-        }
+    init(action: TextAction) {
+        self._draft = State(initialValue: action)
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(action.name.isEmpty ? "New Action" : "Edit Action")
-                .font(.headline)
-
-            TextField("Name", text: $action.name)
+            TextField("Name", text: $draft.name)
                 .textFieldStyle(.roundedBorder)
 
-            Picker("Type", selection: $action.type) {
+            Picker("Type", selection: $draft.type) {
                 Text("LLM").tag(TextAction.ActionType.llm)
                 Text("Script").tag(TextAction.ActionType.script)
             }
             .pickerStyle(.segmented)
+            .fixedSize()
 
-            switch action.type {
+            switch draft.type {
             case .llm:
                 Text("Instruction")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                TextEditor(text: $action.instruction)
+                TextEditor(text: $draft.instruction)
                     .font(.body)
-                    .frame(minHeight: 80)
-                    .border(Color.secondary.opacity(0.2))
             case .script:
                 Text("JavaScript — read `input`, set `output`")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                TextEditor(text: $action.script)
+                TextEditor(text: $draft.script)
                     .font(.system(.body, design: .monospaced))
-                    .frame(minHeight: 80)
-                    .border(Color.secondary.opacity(0.2))
-            }
-
-            HStack {
-                Button("Cancel") { onCancel() }
-                    .keyboardShortcut(.cancelAction)
-                Spacer()
-                Button("Save") { onSave(action) }
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(!isValid)
             }
         }
         .padding()
-        .frame(width: 400)
+        .onChange(of: draft) { _, newValue in
+            store.update(newValue)
+        }
     }
+}
+
+#Preview {
+    TextActionsView()
+        .environment(TextActionStore())
 }
