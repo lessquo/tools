@@ -233,18 +233,13 @@ final class ModelStore {
     // MARK: - Private
 
     private let client: HubClient
-    private let modelsDirectory: URL
+    private let cache: HubCache
 
     // MARK: - Init
 
     init() {
-        let appSupport = FileManager.default.urls(
-            for: .applicationSupportDirectory, in: .userDomainMask
-        ).first!
-        self.modelsDirectory = appSupport.appending(
-            path: "Tools/Models", directoryHint: .isDirectory
-        )
         self.client = HubClient.default
+        self.cache = HubCache.default
         self.selectedModelID = UserDefaults.standard.string(forKey: "selectedModelID")
             ?? Self.available[0].id
         refreshDownloadStates()
@@ -255,12 +250,10 @@ final class ModelStore {
     func download(_ model: CuratedModel) async throws {
         let modelID = model.id
         guard let repoID = Repo.ID(rawValue: modelID) else { return }
-        let destination = modelsDirectory.appending(path: modelID)
         downloadStates[modelID] = .downloading(fractionCompleted: 0)
 
-        _ = try await client.downloadSnapshot(
+        let path = try await client.downloadSnapshot(
             of: repoID,
-            to: destination,
             matching: ["*.safetensors", "*.json", "tokenizer.model"]
         ) { [weak self] progress in
             self?.downloadStates[modelID] = .downloading(
@@ -268,6 +261,7 @@ final class ModelStore {
             )
         }
 
+        resolvedPaths[modelID] = path
         downloadStates[modelID] = .downloaded
 
         if !isSelectedModelDownloaded {
@@ -276,15 +270,10 @@ final class ModelStore {
     }
 
     func deleteDownload(_ model: CuratedModel) throws {
-        let modelDir = modelsDirectory.appending(path: model.id)
-        if FileManager.default.fileExists(atPath: modelDir.path()) {
-            try FileManager.default.removeItem(at: modelDir)
-        }
-        if let repoID = Repo.ID(rawValue: model.id) {
-            let cacheDir = HubCache.default.repoDirectory(repo: repoID, kind: .model)
-            if FileManager.default.fileExists(atPath: cacheDir.path()) {
-                try FileManager.default.removeItem(at: cacheDir)
-            }
+        guard let repoID = Repo.ID(rawValue: model.id) else { return }
+        let cacheDir = cache.repoDirectory(repo: repoID, kind: .model)
+        if FileManager.default.fileExists(atPath: cacheDir.path()) {
+            try FileManager.default.removeItem(at: cacheDir)
         }
         resolvedPaths[model.id] = nil
         downloadStates[model.id] = .notDownloaded
@@ -298,7 +287,9 @@ final class ModelStore {
     // MARK: - Internal
 
     func modelDirectory(for modelID: String) -> URL {
-        resolvedPaths[modelID] ?? modelsDirectory.appending(path: modelID)
+        resolvedPaths[modelID] ?? cache.repoDirectory(
+            repo: Repo.ID(rawValue: modelID)!, kind: .model
+        )
     }
 
     var selectedModel: CuratedModel? {
@@ -310,19 +301,12 @@ final class ModelStore {
     }
 
     func refreshDownloadStates() {
-        let cache = HubCache.default
         for model in Self.available {
-            let appDir = modelsDirectory.appending(path: model.id)
-            let configInApp = appDir.appending(path: "config.json")
-
-            if FileManager.default.fileExists(atPath: configInApp.path()) {
-                downloadStates[model.id] = .downloaded
-                resolvedPaths[model.id] = appDir
-            } else if let repoID = Repo.ID(rawValue: model.id),
-                      let cached = cache.cachedFilePath(
-                          repo: repoID, kind: .model, revision: "main",
-                          filename: "config.json"
-                      )
+            if let repoID = Repo.ID(rawValue: model.id),
+               let cached = cache.cachedFilePath(
+                   repo: repoID, kind: .model, revision: "main",
+                   filename: "config.json"
+               )
             {
                 downloadStates[model.id] = .downloaded
                 resolvedPaths[model.id] = cached.deletingLastPathComponent()
