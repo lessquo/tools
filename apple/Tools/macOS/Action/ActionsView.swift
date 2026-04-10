@@ -3,6 +3,7 @@ import SwiftUI
 struct ActionsView: View {
     @Environment(ActionStore.self) private var store
     @State private var selectedActionID: UUID?
+    @State private var focusNewActionID: UUID?
     @State private var showResetConfirmation = false
 
     var body: some View {
@@ -54,8 +55,9 @@ struct ActionsView: View {
 
             if let selectedID = selectedActionID,
                let action = store.actions.first(where: { $0.id == selectedID }) {
-                ActionDetailView(action: action)
+                ActionDetailView(action: action, focusName: focusNewActionID == selectedID)
                     .id(selectedID)
+                    .onAppear { focusNewActionID = nil }
                     .frame(minWidth: 300, maxWidth: .infinity)
             } else {
                 ContentUnavailableView(
@@ -100,6 +102,7 @@ struct ActionsView: View {
     private func addNew() {
         let action = Action(id: UUID(), name: "", instruction: "")
         store.add(action)
+        focusNewActionID = action.id
         selectedActionID = action.id
     }
 
@@ -117,15 +120,19 @@ struct ActionsView: View {
 private struct ActionDetailView: View {
     @Environment(ActionStore.self) private var store
     @State private var draft: Action
+    @FocusState private var isNameFocused: Bool
+    let focusName: Bool
 
-    init(action: Action) {
+    init(action: Action, focusName: Bool) {
         self._draft = State(initialValue: action)
+        self.focusName = focusName
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             TextField("Name", text: $draft.name)
                 .textFieldStyle(.roundedBorder)
+                .focused($isNameFocused)
 
             Picker("Type", selection: $draft.type) {
                 Text("LLM").tag(Action.ActionType.llm)
@@ -150,6 +157,11 @@ private struct ActionDetailView: View {
             }
         }
         .padding()
+        .onAppear {
+            if focusName {
+                isNameFocused = true
+            }
+        }
         .onChange(of: draft) { _, newValue in
             store.update(newValue)
         }
