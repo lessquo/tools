@@ -49,6 +49,7 @@ final class TextActionService {
     }
 
     private(set) var status: Status = .idle
+    var editedResult = ""
 
     private let clipboard = ClipboardService()
     private let ai: AIService
@@ -108,6 +109,7 @@ final class TextActionService {
                 result += chunk
                 status = .processing(original: text, result: result)
             }
+            editedResult = result
             status = .ready(original: text, result: result)
         } catch {
             status = .error(error.localizedDescription)
@@ -115,10 +117,10 @@ final class TextActionService {
     }
 
     func applyResult() async {
-        guard case .ready(_, let result) = status else { return }
+        guard case .ready = status else { return }
 
         status = .pasting
-        clipboard.write(result)
+        clipboard.write(editedResult)
 
         do {
             try await clipboard.simulatePaste()

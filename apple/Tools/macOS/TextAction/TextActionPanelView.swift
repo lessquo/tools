@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct TextActionPanelView: View {
-    let service: TextActionService
+    @Bindable var service: TextActionService
+    @FocusState private var isEditorFocused: Bool
     let onClose: () -> Void
     let onDismiss: () -> Void
+    let onMakeKey: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -14,8 +16,8 @@ struct TextActionPanelView: View {
                 statusLabel("Copying...", systemImage: "doc.on.clipboard")
             case .processing(_, let result):
                 previewArea(result, isStreaming: true)
-            case .ready(_, let result):
-                previewArea(result, isStreaming: false)
+            case .ready:
+                editablePreview
                 confirmBar
             case .pasting:
                 statusLabel("Applying...", systemImage: "doc.on.clipboard.fill")
@@ -80,6 +82,18 @@ struct TextActionPanelView: View {
         }
     }
 
+    private var editablePreview: some View {
+        TextEditor(text: $service.editedResult)
+            .font(.body)
+            .scrollContentBackground(.hidden)
+            .frame(maxHeight: 300)
+            .focused($isEditorFocused)
+            .onAppear {
+                onMakeKey()
+                isEditorFocused = true
+            }
+    }
+
     // MARK: - Confirm Bar
 
     private var confirmBar: some View {
@@ -88,12 +102,13 @@ struct TextActionPanelView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
             Spacer()
-            Button("Apply") {
+            Button("Apply ⌘↩") {
+                onClose()
                 Task {
                     await service.applyResult()
-                    onClose()
                 }
             }
+            .keyboardShortcut(.return, modifiers: .command)
             .buttonStyle(.borderedProminent)
             .controlSize(.small)
         }

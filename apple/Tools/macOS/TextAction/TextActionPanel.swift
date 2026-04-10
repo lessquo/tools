@@ -1,6 +1,10 @@
 import AppKit
 import SwiftUI
 
+private class KeyablePanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+}
+
 @MainActor
 final class TextActionPanel {
 
@@ -29,13 +33,14 @@ final class TextActionPanel {
         let view = TextActionPanelView(
             service: service,
             onClose: { [weak self] in self?.close() },
-            onDismiss: { [weak self] in self?.dismiss() }
+            onDismiss: { [weak self] in self?.dismiss() },
+            onMakeKey: { [weak self] in self?.panel?.makeKey() }
         )
         let hostingView = NSHostingView(rootView: view)
         hostingView.sizingOptions = .intrinsicContentSize
 
         if panel == nil {
-            let p = NSPanel(
+            let p = KeyablePanel(
                 contentRect: .zero,
                 styleMask: [.nonactivatingPanel, .borderless],
                 backing: .buffered,
