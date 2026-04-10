@@ -90,7 +90,18 @@ final class ActionPanel {
             guard let self else { return event }
             if event.keyCode == 53 { self.dismiss(); return nil }
 
-            guard let service = self.service, case .idle = service.status else { return event }
+            guard let service = self.service else { return event }
+
+            // ⌘↩ to apply result (keyboardShortcut doesn't work on nonactivatingPanel)
+            if case .ready = service.status,
+               event.keyCode == 36,
+               event.modifierFlags.contains(.command) {
+                self.close()
+                Task { await service.applyResult() }
+                return nil
+            }
+
+            guard case .idle = service.status else { return event }
 
             let actions = self.actionStore.actions
             guard !actions.isEmpty else { return event }
