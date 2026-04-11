@@ -6,6 +6,9 @@ struct TagBar: View {
 
     var body: some View {
         FlowLayout(spacing: 6) {
+            Text("Tags")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
             ForEach(tags, id: \.self) { tag in
                 Button {
                     if selection.contains(tag) {
