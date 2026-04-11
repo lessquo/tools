@@ -10,20 +10,32 @@ struct ExploreView: View {
     }
 
     var filteredModels: [HuggingFace.Model] {
-        guard !store.exploreFilterTags.isEmpty else { return store.models }
-        return store.models.filter {
-            guard let tag = $0.pipelineTag else { return false }
-            return store.exploreFilterTags.contains(tag)
-        }
+        let base = store.exploreFilterTags.isEmpty
+            ? store.models
+            : store.models.filter {
+                guard let tag = $0.pipelineTag else { return false }
+                return store.exploreFilterTags.contains(tag)
+            }
+        return base.sorted(by: store.exploreSortOption)
     }
 
     var body: some View {
         @Bindable var store = store
         List {
-            if allTags.count >= 2 {
-                TagBar(tags: allTags, selection: $store.exploreFilterTags)
-                    .listRowSeparator(.hidden)
+            HStack {
+                if allTags.count >= 2 {
+                    TagBar(tags: allTags, selection: $store.exploreFilterTags)
+                }
+                Spacer()
+                Picker("Sort by", selection: $store.exploreSortOption) {
+                    ForEach(ModelStore.SortOption.allCases, id: \.self) {
+                        Text($0.rawValue)
+                    }
+                }
+                .pickerStyle(.menu)
+                .fixedSize()
             }
+            .listRowSeparator(.hidden)
             ForEach(filteredModels, id: \.id) { model in
                 ModelRow(model: model, errorMessage: $errorMessage)
             }

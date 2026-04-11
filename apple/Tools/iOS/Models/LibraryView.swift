@@ -10,20 +10,32 @@ struct LibraryView: View {
     }
 
     var filteredModels: [HuggingFace.Model] {
-        guard !store.libraryFilterTags.isEmpty else { return store.downloadedModels }
-        return store.downloadedModels.filter {
-            guard let tag = $0.pipelineTag else { return false }
-            return store.libraryFilterTags.contains(tag)
-        }
+        let base = store.libraryFilterTags.isEmpty
+            ? store.downloadedModels
+            : store.downloadedModels.filter {
+                guard let tag = $0.pipelineTag else { return false }
+                return store.libraryFilterTags.contains(tag)
+            }
+        return base.sorted(by: store.librarySortOption)
     }
 
     var body: some View {
         @Bindable var store = store
         List {
-            if allTags.count >= 2 {
-                TagBar(tags: allTags, selection: $store.libraryFilterTags)
-                    .listRowSeparator(.hidden)
+            HStack {
+                if allTags.count >= 2 {
+                    TagBar(tags: allTags, selection: $store.libraryFilterTags)
+                }
+                Spacer()
+                Picker("Sort by", selection: $store.librarySortOption) {
+                    ForEach(ModelStore.SortOption.allCases, id: \.self) {
+                        Text($0.rawValue)
+                    }
+                }
+                .pickerStyle(.menu)
+                .fixedSize()
             }
+            .listRowSeparator(.hidden)
             ForEach(filteredModels, id: \.id) { model in
                 ModelRow(model: model, errorMessage: $errorMessage)
             }

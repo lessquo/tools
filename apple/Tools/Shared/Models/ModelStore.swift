@@ -5,6 +5,22 @@ import HuggingFace
 @MainActor
 final class ModelStore {
 
+    enum SortOption: String, CaseIterable {
+        case downloads = "Downloads"
+        case likes = "Likes"
+        case recentlyCreated = "Recently Created"
+        case recentlyUpdated = "Recently Updated"
+
+        var apiValue: String {
+            switch self {
+            case .downloads: "downloads"
+            case .likes: "likes"
+            case .recentlyCreated: "createdAt"
+            case .recentlyUpdated: "lastModified"
+            }
+        }
+    }
+
     enum DownloadState: Sendable, Equatable {
         case notDownloaded
         case downloading(fractionCompleted: Double)
@@ -21,6 +37,10 @@ final class ModelStore {
 
     var libraryFilterTags: Set<String> = []
     var exploreFilterTags: Set<String> = []
+    var librarySortOption: SortOption = .downloads
+    var exploreSortOption: SortOption = .downloads {
+        didSet { Task { await fetchModels() } }
+    }
 
     var selectedModelID: String {
         didSet { UserDefaults.standard.set(selectedModelID, forKey: "selectedModelID") }
@@ -49,7 +69,7 @@ final class ModelStore {
 
         guard let response = try? await client.listModels(
             author: "mlx-community",
-            sort: "downloads",
+            sort: exploreSortOption.apiValue,
             direction: .descending,
             limit: 500,
             config: true
@@ -225,6 +245,21 @@ extension HuggingFace.Model {
     var avatar: String {
         let lower = id.name.lowercased()
         return Self.avatarKeywords.first { lower.contains($0.keyword) }?.asset ?? ""
+    }
+}
+
+extension [HuggingFace.Model] {
+    func sorted(by option: ModelStore.SortOption) -> [HuggingFace.Model] {
+        switch option {
+        case .downloads:
+            sorted { ($0.downloads ?? 0) > ($1.downloads ?? 0) }
+        case .likes:
+            sorted { ($0.likes ?? 0) > ($1.likes ?? 0) }
+        case .recentlyCreated:
+            sorted { ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast) }
+        case .recentlyUpdated:
+            sorted { ($0.lastModified ?? .distantPast) > ($1.lastModified ?? .distantPast) }
+        }
     }
 }
 
