@@ -14,6 +14,7 @@ final class ModelStore {
     // MARK: - State
 
     private(set) var models: [HuggingFace.Model] = []
+    private(set) var downloadedModels: [HuggingFace.Model] = []
     private(set) var isFetching = false
     var downloadStates: [String: DownloadState] = [:]
     private var resolvedPaths: [String: URL] = [:]
@@ -33,6 +34,7 @@ final class ModelStore {
         self.client = HubClient.default
         self.cache = HubCache.default
         self.selectedModelID = UserDefaults.standard.string(forKey: "selectedModelID") ?? ""
+        scanDownloadedModels()
         Task { await fetchModels() }
     }
 
@@ -53,6 +55,7 @@ final class ModelStore {
         guard !response.items.isEmpty else { return }
         models = response.items
         refreshDownloadStates()
+        scanDownloadedModels()
     }
 
     // MARK: - Actions
@@ -76,6 +79,8 @@ final class ModelStore {
         if !isSelectedModelDownloaded {
             selectedModelID = modelID
         }
+
+        scanDownloadedModels()
     }
 
     func deleteDownload(_ model: HuggingFace.Model) throws {
@@ -91,6 +96,8 @@ final class ModelStore {
                 downloadStates[$0.id.rawValue] == .downloaded
             })?.id.rawValue ?? ""
         }
+
+        scanDownloadedModels()
     }
 
     // MARK: - Internal
@@ -109,6 +116,45 @@ final class ModelStore {
 
     var isSelectedModelDownloaded: Bool {
         downloadStates[selectedModelID] == .downloaded
+    }
+
+    func scanDownloadedModels() {
+        let fm = FileManager.default
+        guard let contents = try? fm.contentsOfDirectory(
+            at: cache.cacheDirectory,
+            includingPropertiesForKeys: nil
+        ) else { return }
+
+        var found: [HuggingFace.Model] = []
+
+        for dir in contents {
+            let parts = dir.lastPathComponent.components(separatedBy: "--")
+            guard parts.count >= 3, parts[0] == "models" else { continue }
+
+            let repoString = parts[1] + "/" + parts.dropFirst(2).joined(separator: "--")
+            guard let repoID = Repo.ID(rawValue: repoString) else { continue }
+
+            guard let cached = cache.cachedFilePath(
+                repo: repoID, kind: .model, revision: "main",
+                filename: "config.json"
+            ) else { continue }
+
+            resolvedPaths[repoString] = cached.deletingLastPathComponent()
+            downloadStates[repoString] = .downloaded
+
+            if let apiModel = models.first(where: { $0.id.rawValue == repoString }) {
+                found.append(apiModel)
+            } else {
+                let json = Data("{\"id\":\"\(repoString)\"}".utf8)
+                if let model = try? JSONDecoder().decode(
+                    HuggingFace.Model.self, from: json
+                ) {
+                    found.append(model)
+                }
+            }
+        }
+
+        downloadedModels = found
     }
 
     func refreshDownloadStates() {
