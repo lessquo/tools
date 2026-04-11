@@ -150,6 +150,7 @@ extension HuggingFace.Model {
         ("minimax", "MiniMaxAI"),
         ("ministral", "mistralai"),
         ("mistral", "mistralai"),
+        ("mixtral", "mistralai"),
         ("nemotron", "nvidia"),
         ("openelm", "apple"),
         ("orpheus", "canopylabs"),

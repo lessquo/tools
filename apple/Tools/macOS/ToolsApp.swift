@@ -10,9 +10,6 @@ struct ToolsApp: App {
                 .environment(appDelegate.actionStore)
         }
         .defaultSize(width: 1200, height: 700)
-        MenuBarExtra("Tools", systemImage: "wand.and.stars") {
-            MenuBarView()
-        }
         Settings {
             SettingsView()
                 .environment(appDelegate.actionStore)
