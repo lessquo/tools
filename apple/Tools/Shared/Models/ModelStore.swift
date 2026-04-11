@@ -126,6 +126,7 @@ final class ModelStore {
         ) else { return }
 
         var found: [HuggingFace.Model] = []
+        var idsToFetch: [Repo.ID] = []
 
         for dir in contents {
             let parts = dir.lastPathComponent.components(separatedBy: "--")
@@ -145,16 +146,21 @@ final class ModelStore {
             if let apiModel = models.first(where: { $0.id.rawValue == repoString }) {
                 found.append(apiModel)
             } else {
-                let json = Data("{\"id\":\"\(repoString)\"}".utf8)
-                if let model = try? JSONDecoder().decode(
-                    HuggingFace.Model.self, from: json
-                ) {
-                    found.append(model)
-                }
+                idsToFetch.append(repoID)
             }
         }
 
         downloadedModels = found
+
+        if !idsToFetch.isEmpty {
+            Task {
+                for repoID in idsToFetch {
+                    if let model = try? await client.getModel(repoID) {
+                        downloadedModels.append(model)
+                    }
+                }
+            }
+        }
     }
 
     func refreshDownloadStates() {
