@@ -5,32 +5,45 @@ struct ModelsView: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        List(ModelStore.available) { model in
-            let state = store.downloadStates[model.id] ?? .notDownloaded
+        List(store.models) { model in
+            let modelID = model.id.rawValue
+            let state = store.downloadStates[modelID] ?? .notDownloaded
 
             HStack {
-                Image(model.avatar)
-                    .resizable()
-                    .frame(width: 32, height: 32)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                Group {
+                    if model.avatar.isEmpty {
+                        Image(systemName: "cube.box")
+                            .resizable()
+                            .scaledToFit()
+                    } else {
+                        Image(model.avatar)
+                            .resizable()
+                    }
+                }
+                .frame(width: 32, height: 32)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 4) {
-                        Text(model.name)
+                        Text(model.id.name)
                         switch model.kind {
                         case .vlm: Text("Vision").badgeStyle()
                         case .stt: Text("Speech").badgeStyle()
                         case .llm: EmptyView()
                         }
                     }
-                    Text("\(model.summary) · \(model.size)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.down.to.line")
+                            .imageScale(.small)
+                        Text((model.downloads ?? 0).compactFormatted)
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                if state == .downloaded, store.selectedModelID == model.id {
+                if state == .downloaded, store.selectedModelID == modelID {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.tint)
                 }
@@ -56,9 +69,9 @@ struct ModelsView: View {
 
                 case .downloaded:
                     Menu {
-                        if store.selectedModelID != model.id {
+                        if store.selectedModelID != modelID {
                             Button("Select") {
-                                store.selectedModelID = model.id
+                                store.selectedModelID = modelID
                             }
                         }
                         Button("Delete", role: .destructive) {
@@ -74,7 +87,7 @@ struct ModelsView: View {
             .contentShape(Rectangle())
             .onTapGesture {
                 if state == .downloaded {
-                    store.selectedModelID = model.id
+                    store.selectedModelID = modelID
                 }
             }
         }
