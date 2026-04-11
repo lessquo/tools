@@ -85,10 +85,30 @@ struct ModelRow: View {
             }
         }
         .padding(.vertical, 4)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if state == .downloaded {
-                store.selectedModelID = modelID
+        .tag(model.id)
+        .contextMenu {
+            switch state {
+            case .notDownloaded:
+                Button("Download") {
+                    Task {
+                        do {
+                            try await store.download(model)
+                        } catch {
+                            errorMessage = error.localizedDescription
+                        }
+                    }
+                }
+            case .downloading:
+                EmptyView()
+            case .downloaded:
+                if store.selectedModelID != modelID {
+                    Button("Select") {
+                        store.selectedModelID = modelID
+                    }
+                }
+                Button("Delete", role: .destructive) {
+                    try? store.deleteDownload(model)
+                }
             }
         }
     }

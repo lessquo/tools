@@ -3,6 +3,7 @@ import SwiftUI
 
 struct LibraryView: View {
     @Environment(ModelStore.self) private var store
+    @State private var selection: HuggingFace.Model.ID?
     @State private var errorMessage: String?
 
     var allTags: [String] {
@@ -29,7 +30,7 @@ struct LibraryView: View {
                     description: Text("Download models from the Explore tab")
                 )
             } else {
-                List {
+                List(selection: $selection) {
                     HStack {
                         if allTags.count >= 2 {
                             TagBar(tags: allTags, selection: $store.libraryFilterTags)

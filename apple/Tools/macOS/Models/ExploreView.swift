@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ExploreView: View {
     @Environment(ModelStore.self) private var store
+    @State private var selection: HuggingFace.Model.ID?
     @State private var errorMessage: String?
 
     var allTags: [String] {
@@ -29,7 +30,7 @@ struct ExploreView: View {
                     description: Text("Models will appear here")
                 )
             } else {
-                List {
+                List(selection: $selection) {
                     HStack {
                         if allTags.count >= 2 {
                             TagBar(tags: allTags, selection: $store.exploreFilterTags)
