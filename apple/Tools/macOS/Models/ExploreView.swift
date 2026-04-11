@@ -4,7 +4,6 @@ import SwiftUI
 struct ExploreView: View {
     @Environment(ModelStore.self) private var store
     @State private var selection: HuggingFace.Model.ID?
-    @State private var errorMessage: String?
 
     var allTags: [String] {
         Set(store.models.compactMap(\.pipelineTag)).sorted()
@@ -46,7 +45,7 @@ struct ExploreView: View {
                     }
                     .listRowSeparator(.hidden)
                     ForEach(filteredModels, id: \.id) { model in
-                        ModelRow(model: model, errorMessage: $errorMessage)
+                        ModelRow(model: model)
                     }
                 }
                 .overlay {
@@ -61,12 +60,12 @@ struct ExploreView: View {
             }
         }
         .alert("Download Failed", isPresented: Binding(
-            get: { errorMessage != nil },
-            set: { if !$0 { errorMessage = nil } }
+            get: { store.downloadError != nil },
+            set: { if !$0 { store.downloadError = nil } }
         )) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(errorMessage ?? "")
+            Text(store.downloadError ?? "")
         }
     }
 }

@@ -28,6 +28,7 @@ final class ModelStore {
 
     enum DownloadState: Sendable, Equatable {
         case notDownloaded
+        case partial
         case downloading(fractionCompleted: Double)
         case downloaded
     }
@@ -38,7 +39,9 @@ final class ModelStore {
     private(set) var downloadedModels: [HuggingFace.Model] = []
     private(set) var isFetching = false
     var downloadStates: [String: DownloadState] = [:]
+    var downloadError: String?
     private var resolvedPaths: [String: URL] = [:]
+    private var downloadTasks: [String: Task<Void, Never>] = [:]
 
     var selectedTab = ModelsTab.library
     var libraryFilterTags: Set<String> = []
@@ -89,7 +92,37 @@ final class ModelStore {
 
     // MARK: - Actions
 
-    func download(_ model: HuggingFace.Model) async throws {
+    func startDownload(_ model: HuggingFace.Model) {
+        let modelID = model.id.rawValue
+        downloadTasks[modelID] = Task {
+            do {
+                try await download(model)
+            } catch {
+                if !Task.isCancelled {
+                    downloadStates[modelID] = .notDownloaded
+                    downloadError = error.localizedDescription
+                }
+            }
+            downloadTasks[modelID] = nil
+        }
+    }
+
+    func cancelDownload(_ model: HuggingFace.Model) {
+        let modelID = model.id.rawValue
+        downloadTasks[modelID]?.cancel()
+        downloadTasks[modelID] = nil
+        downloadStates[modelID] = .partial
+    }
+
+    func deletePartialDownload(_ model: HuggingFace.Model) {
+        let modelID = model.id.rawValue
+        let cacheDir = cache.repoDirectory(repo: model.id, kind: .model)
+        try? FileManager.default.removeItem(at: cacheDir)
+        resolvedPaths[modelID] = nil
+        downloadStates[modelID] = .notDownloaded
+    }
+
+    private func download(_ model: HuggingFace.Model) async throws {
         let modelID = model.id.rawValue
         downloadStates[modelID] = .downloading(fractionCompleted: 0)
 
@@ -164,13 +197,15 @@ final class ModelStore {
             let repoString = parts[1] + "/" + parts.dropFirst(2).joined(separator: "--")
             guard let repoID = Repo.ID(rawValue: repoString) else { continue }
 
-            guard let cached = cache.cachedFilePath(
+            if let cached = cache.cachedFilePath(
                 repo: repoID, kind: .model, revision: "main",
                 filename: "config.json"
-            ) else { continue }
-
-            resolvedPaths[repoString] = cached.deletingLastPathComponent()
-            downloadStates[repoString] = .downloaded
+            ) {
+                resolvedPaths[repoString] = cached.deletingLastPathComponent()
+                downloadStates[repoString] = .downloaded
+            } else {
+                downloadStates[repoString] = .partial
+            }
 
             if let apiModel = models.first(where: { $0.id.rawValue == repoString }) {
                 found.append(apiModel)
@@ -201,6 +236,11 @@ final class ModelStore {
             ) {
                 downloadStates[modelID] = .downloaded
                 resolvedPaths[modelID] = cached.deletingLastPathComponent()
+            } else if FileManager.default.fileExists(
+                atPath: cache.repoDirectory(repo: model.id, kind: .model).path()
+            ) {
+                downloadStates[modelID] = .partial
+                resolvedPaths[modelID] = nil
             } else {
                 downloadStates[modelID] = .notDownloaded
                 resolvedPaths[modelID] = nil

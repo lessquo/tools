@@ -4,7 +4,6 @@ import SwiftUI
 struct ModelRow: View {
     @Environment(ModelStore.self) private var store
     let model: HuggingFace.Model
-    @Binding var errorMessage: String?
     var body: some View {
         let modelID = model.id.rawValue
         let state = store.downloadStates[modelID] ?? .notDownloaded
@@ -51,21 +50,35 @@ struct ModelRow: View {
             switch state {
             case .notDownloaded:
                 Button {
-                    Task {
-                        do {
-                            try await store.download(model)
-                        } catch {
-                            errorMessage = error.localizedDescription
-                        }
-                    }
+                    store.startDownload(model)
                 } label: {
                     Image(systemName: "arrow.down.circle")
+                }
+                .buttonStyle(.borderless)
+
+            case .partial:
+                Button {
+                    store.startDownload(model)
+                } label: {
+                    Image(systemName: "arrow.down.circle")
+                }
+                .buttonStyle(.borderless)
+                Button {
+                    store.deletePartialDownload(model)
+                } label: {
+                    Image(systemName: "trash")
                 }
                 .buttonStyle(.borderless)
 
             case .downloading(let fraction):
                 ProgressView(value: fraction)
                     .frame(width: 60)
+                Button {
+                    store.cancelDownload(model)
+                } label: {
+                    Image(systemName: "xmark.circle")
+                }
+                .buttonStyle(.borderless)
 
             case .downloaded:
                 Menu {
