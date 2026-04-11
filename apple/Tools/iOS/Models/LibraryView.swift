@@ -21,23 +21,42 @@ struct LibraryView: View {
 
     var body: some View {
         @Bindable var store = store
-        List {
-            HStack {
-                if allTags.count >= 2 {
-                    TagBar(tags: allTags, selection: $store.libraryFilterTags)
-                }
-                Spacer()
-                Picker("Sort by", selection: $store.librarySortOption) {
-                    ForEach(ModelStore.SortOption.allCases, id: \.self) {
-                        Text($0.rawValue)
+        Group {
+            if store.downloadedModels.isEmpty {
+                ContentUnavailableView(
+                    "No Models",
+                    systemImage: "square.and.arrow.down",
+                    description: Text("Download models from the Explore tab")
+                )
+            } else {
+                List {
+                    HStack {
+                        if allTags.count >= 2 {
+                            TagBar(tags: allTags, selection: $store.libraryFilterTags)
+                        }
+                        Spacer()
+                        Picker("Sort by", selection: $store.librarySortOption) {
+                            ForEach(ModelStore.SortOption.allCases, id: \.self) {
+                                Text($0.rawValue)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .fixedSize()
+                    }
+                    .listRowSeparator(.hidden)
+                    ForEach(filteredModels, id: \.id) { model in
+                        ModelRow(model: model, errorMessage: $errorMessage)
                     }
                 }
-                .pickerStyle(.menu)
-                .fixedSize()
-            }
-            .listRowSeparator(.hidden)
-            ForEach(filteredModels, id: \.id) { model in
-                ModelRow(model: model, errorMessage: $errorMessage)
+                .overlay {
+                    if filteredModels.isEmpty {
+                        ContentUnavailableView(
+                            "No Results",
+                            systemImage: "magnifyingglass",
+                            description: Text("Try adjusting your filters")
+                        )
+                    }
+                }
             }
         }
         .alert("Download Failed", isPresented: Binding(
