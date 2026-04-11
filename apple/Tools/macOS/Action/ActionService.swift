@@ -39,6 +39,14 @@ struct Action: Codable, Identifiable, Equatable {
         Action(id: UUID(), name: "Sort Lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
         Action(id: UUID(), name: "Count Words", type: .script, script: "output = input.trim().split(/\\s+/).filter(w => w.length > 0).length + ' words'"),
     ]
+
+    static let templates: [Action] = [
+        Action(id: UUID(), name: "Fix Grammar", prompt: "Fix the grammar and spelling. Preserve the original language and tone. Output ONLY the result.\n\n{{input}}"),
+        Action(id: UUID(), name: "Summarize", prompt: "Summarize concisely. Output ONLY the result.\n\n{{input}}"),
+        Action(id: UUID(), name: "Translate to English", prompt: "Translate to English. Output ONLY the result.\n\n{{input}}"),
+        Action(id: UUID(), name: "Sort Lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
+        Action(id: UUID(), name: "Count Words", type: .script, script: "output = input.trim().split(/\\s+/).filter(w => w.length > 0).length + ' words'"),
+    ]
 }
 
 @Observable

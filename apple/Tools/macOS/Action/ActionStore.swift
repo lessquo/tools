@@ -1,11 +1,17 @@
 import Foundation
 
+enum ActionsTab: String, CaseIterable {
+    case myActions = "My Actions"
+    case templates = "Templates"
+}
+
 @Observable
 @MainActor
 final class ActionStore {
 
     private static let storageKey = "actions"
 
+    var selectedTab = ActionsTab.myActions
     private(set) var actions: [Action] = []
 
     init() {
