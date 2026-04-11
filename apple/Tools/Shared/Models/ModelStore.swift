@@ -19,6 +19,9 @@ final class ModelStore {
     var downloadStates: [String: DownloadState] = [:]
     private var resolvedPaths: [String: URL] = [:]
 
+    var libraryFilterTags: Set<String> = []
+    var exploreFilterTags: Set<String> = []
+
     var selectedModelID: String {
         didSet { UserDefaults.standard.set(selectedModelID, forKey: "selectedModelID") }
     }

@@ -45,7 +45,7 @@ targets:
     preBuildScripts:
       - script: |
           if [ "$CONFIGURATION" = "Debug" ]; then
-              tccutil reset Accessibility "$PRODUCT_BUNDLE_IDENTIFIER"
+              tccutil reset Accessibility "$PRODUCT_BUNDLE_IDENTIFIER" || true
           fi
         name: Reset Accessibility Permission
     settings:

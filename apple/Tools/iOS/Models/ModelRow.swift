@@ -5,7 +5,6 @@ struct ModelRow: View {
     @Environment(ModelStore.self) private var store
     let model: HuggingFace.Model
     @Binding var errorMessage: String?
-
     var body: some View {
         let modelID = model.id.rawValue
         let state = store.downloadStates[modelID] ?? .notDownloaded
@@ -25,12 +24,7 @@ struct ModelRow: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
 
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text(model.id.name)
-                    if let tag = model.pipelineTag {
-                        Text(tag).badgeStyle()
-                    }
-                }
+                Text(model.id.name)
                 HStack(spacing: 8) {
                     HStack(spacing: 2) {
                         Image(systemName: "arrow.down.to.line")
