@@ -2,13 +2,12 @@ import SwiftUI
 
 struct MyActionsView: View {
     @Environment(ActionStore.self) private var store
-    @State private var selectedActionID: UUID?
     @State private var focusNewActionID: UUID?
-    @State private var showResetConfirmation = false
 
     var body: some View {
+        @Bindable var store = store
         HSplitView {
-            List(selection: $selectedActionID) {
+            List(selection: $store.selectedActionID) {
                 ForEach(Array(store.actions.enumerated()), id: \.element.id) { index, action in
                     HStack {
                         Text("\(index + 1)")
@@ -41,13 +40,13 @@ struct MyActionsView: View {
             }
             .frame(minWidth: 180, idealWidth: 220, maxWidth: 280)
             .onDeleteCommand {
-                if let id = selectedActionID,
+                if let id = store.selectedActionID,
                    let action = store.actions.first(where: { $0.id == id }) {
                     delete(action)
                 }
             }
 
-            if let selectedID = selectedActionID,
+            if let selectedID = store.selectedActionID,
                let action = store.actions.first(where: { $0.id == selectedID }) {
                 ActionDetailView(action: action, focusName: focusNewActionID == selectedID)
                     .id(selectedID)
@@ -71,11 +70,6 @@ struct MyActionsView: View {
         }
         .toolbar {
             ToolbarItem {
-                Button("Reset to Defaults") {
-                    showResetConfirmation = true
-                }
-            }
-            ToolbarItem {
                 Button {
                     addNew()
                 } label: {
@@ -84,18 +78,9 @@ struct MyActionsView: View {
                 .keyboardShortcut("n", modifiers: .command)
             }
         }
-        .alert("Reset to Defaults?", isPresented: $showResetConfirmation) {
-            Button("Reset", role: .destructive) {
-                store.resetToDefaults()
-                selectedActionID = store.actions.first?.id
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This will replace all your custom actions with the defaults.")
-        }
         .task {
-            if selectedActionID == nil {
-                selectedActionID = store.actions.first?.id
+            if store.selectedActionID == nil {
+                store.selectedActionID = store.actions.first?.id
             }
         }
     }
@@ -104,16 +89,16 @@ struct MyActionsView: View {
         let action = Action(id: UUID(), name: "", prompt: "")
         store.add(action)
         focusNewActionID = action.id
-        selectedActionID = action.id
+        store.selectedActionID = action.id
     }
 
     private func delete(_ action: Action) {
         guard let idx = store.actions.firstIndex(where: { $0.id == action.id }) else { return }
-        let wasSelected = selectedActionID == action.id
+        let wasSelected = store.selectedActionID == action.id
         store.delete(at: IndexSet(integer: idx))
         if wasSelected {
             let newIndex = min(idx, store.actions.count - 1)
-            selectedActionID = newIndex >= 0 ? store.actions[newIndex].id : nil
+            store.selectedActionID = newIndex >= 0 ? store.actions[newIndex].id : nil
         }
     }
 }

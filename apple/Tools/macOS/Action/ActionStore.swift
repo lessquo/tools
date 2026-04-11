@@ -12,6 +12,8 @@ final class ActionStore {
     private static let storageKey = "actions"
 
     var selectedTab = ActionsTab.myActions
+    var selectedActionID: UUID?
+    var selectedTemplateID: UUID?
     private(set) var actions: [Action] = []
 
     init() {
@@ -27,6 +29,14 @@ final class ActionStore {
     func add(_ action: Action) {
         actions.append(action)
         save()
+    }
+
+    func addFromTemplate(_ template: Action) {
+        let copy = Action(id: UUID(), name: template.name, type: template.type, prompt: template.prompt, script: template.script)
+        actions.append(copy)
+        save()
+        selectedActionID = copy.id
+        selectedTab = .myActions
     }
 
     func update(_ action: Action) {
