@@ -1,6 +1,11 @@
 import Foundation
 import HuggingFace
 
+enum ModelsTab: String, CaseIterable {
+    case library = "Library"
+    case explore = "Explore"
+}
+
 @Observable
 @MainActor
 final class ModelStore {
@@ -35,6 +40,7 @@ final class ModelStore {
     var downloadStates: [String: DownloadState] = [:]
     private var resolvedPaths: [String: URL] = [:]
 
+    var selectedTab = ModelsTab.library
     var libraryFilterTags: Set<String> = []
     var exploreFilterTags: Set<String> = []
     var librarySortOption: SortOption = .downloads

@@ -2,16 +2,11 @@ import SwiftUI
 
 struct ModelsView: View {
     @Environment(ModelStore.self) private var store
-    @State private var selectedTab = Tab.library
-
-    enum Tab: String, CaseIterable {
-        case library = "Library"
-        case explore = "Explore"
-    }
 
     var body: some View {
+        @Bindable var store = store
         Group {
-            switch selectedTab {
+            switch store.selectedTab {
             case .library: LibraryView()
             case .explore: ExploreView()
             }
@@ -19,8 +14,8 @@ struct ModelsView: View {
         .navigationTitle("Models")
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Picker("", selection: $selectedTab) {
-                    ForEach(Tab.allCases, id: \.self) { Text($0.rawValue) }
+                Picker("", selection: $store.selectedTab) {
+                    ForEach(ModelsTab.allCases, id: \.self) { Text($0.rawValue) }
                 }
                 .pickerStyle(.segmented)
                 .fixedSize()
