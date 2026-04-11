@@ -5,12 +5,6 @@ import HuggingFace
 @MainActor
 final class ModelStore {
 
-    // MARK: - Types
-
-    enum ModelKind: Sendable {
-        case llm, vlm, stt
-    }
-
     enum DownloadState: Sendable, Equatable {
         case notDownloaded
         case downloading(fractionCompleted: Double)
@@ -20,7 +14,7 @@ final class ModelStore {
     // MARK: - State
 
     private(set) var models: [HuggingFace.Model] = []
-    private(set) var isFetchingCatalog = false
+    private(set) var isFetching = false
     var downloadStates: [String: DownloadState] = [:]
     private var resolvedPaths: [String: URL] = [:]
 
@@ -39,31 +33,26 @@ final class ModelStore {
         self.client = HubClient.default
         self.cache = HubCache.default
         self.selectedModelID = UserDefaults.standard.string(forKey: "selectedModelID") ?? ""
-        Task { await fetchCatalog() }
+        Task { await fetchModels() }
     }
 
-    // MARK: - Catalog
+    // MARK: - Fetch
 
-    func fetchCatalog() async {
-        isFetchingCatalog = true
-        defer { isFetchingCatalog = false }
+    func fetchModels() async {
+        isFetching = true
+        defer { isFetching = false }
 
-        do {
-            let response = try await client.listModels(
-                author: "mlx-community",
-                sort: "downloads",
-                direction: .descending,
-                limit: 500,
-                config: true
-            )
+        guard let response = try? await client.listModels(
+            author: "mlx-community",
+            sort: "downloads",
+            direction: .descending,
+            limit: 500,
+            config: true
+        ) else { return }
 
-            let compatible = response.items.filter { Self.isCompatible($0) }
-            guard !compatible.isEmpty else { return }
-            models = compatible
-            refreshDownloadStates()
-        } catch {
-            // Keep current list
-        }
+        guard !response.items.isEmpty else { return }
+        models = response.items
+        refreshDownloadStates()
     }
 
     // MARK: - Actions
@@ -137,52 +126,11 @@ final class ModelStore {
             }
         }
     }
-
-    // MARK: - Compatibility
-
-    static let supportedLLMTypes: Set<String> = [
-        "mistral", "llama", "phi", "phi3", "phi3small", "phimoe",
-        "gemma", "gemma2", "gemma3_text", "gemma3n",
-        "qwen2", "qwen3", "qwen3_moe",
-        "cohere", "cohere2", "starcoder2", "internlm2", "openelm",
-    ]
-
-    static let supportedVLMTypes: Set<String> = [
-        "paligemma", "qwen2_vl", "qwen2_5_vl", "qwen3_vl",
-        "gemma3", "smolvlm", "pixtral", "mistral3",
-    ]
-
-    private static func isCompatible(_ model: HuggingFace.Model) -> Bool {
-        let name = model.id.name.lowercased()
-        let isWhisper = name.contains("whisper")
-
-        if !isWhisper {
-            guard name.contains("4bit") || name.contains("4-bit") else { return false }
-            guard !name.contains("8bit"), !name.contains("bf16"),
-                  !name.contains("fp16") else { return false }
-        }
-
-        let modelType = model.config?["model_type"]?.stringValue
-        if isWhisper {
-            return true
-        } else if let mt = modelType {
-            return supportedLLMTypes.contains(mt) || supportedVLMTypes.contains(mt)
-        }
-        return false
-    }
 }
 
 // MARK: - HuggingFace.Model Helpers
 
 extension HuggingFace.Model {
-    var kind: ModelStore.ModelKind {
-        let name = id.name.lowercased()
-        if name.contains("whisper") { return .stt }
-        if let mt = config?["model_type"]?.stringValue,
-           ModelStore.supportedVLMTypes.contains(mt) { return .vlm }
-        return .llm
-    }
-
     private static let avatarKeywords: [(keyword: String, asset: String)] = [
         ("qwen", "qwen"),
         ("llama", "meta-llama"),

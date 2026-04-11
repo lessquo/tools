@@ -26,16 +26,21 @@ struct ModelsView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 4) {
                         Text(model.id.name)
-                        switch model.kind {
-                        case .vlm: Text("Vision").badgeStyle()
-                        case .stt: Text("Speech").badgeStyle()
-                        case .llm: EmptyView()
+                        if let tag = model.pipelineTag {
+                            Text(tag).badgeStyle()
                         }
                     }
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.down.to.line")
-                            .imageScale(.small)
-                        Text((model.downloads ?? 0).compactFormatted)
+                    HStack(spacing: 8) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "arrow.down.to.line")
+                                .imageScale(.small)
+                            Text((model.downloads ?? 0).compactFormatted)
+                        }
+                        HStack(spacing: 2) {
+                            Image(systemName: "heart")
+                                .imageScale(.small)
+                            Text((model.likes ?? 0).compactFormatted)
+                        }
                     }
                     .font(.caption)
                     .foregroundStyle(.secondary)
