@@ -87,6 +87,7 @@ struct ModelRow: View {
                     Image(systemName: "ellipsis.circle")
                 }
                 .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
             }
         }
         .padding(.vertical, 4)
