@@ -11,15 +11,12 @@ struct ExploreView: View {
     }
 
     var filteredModels: [HuggingFace.Model] {
-        var base = state.filterTags.isEmpty
+        let base = state.filterTags.isEmpty
             ? store.models
             : store.models.filter {
                 guard let tag = $0.pipelineTag else { return false }
                 return state.filterTags.contains(tag)
             }
-        if !state.searchText.isEmpty {
-            base = base.filter { $0.id.rawValue.localizedCaseInsensitiveContains(state.searchText) }
-        }
         return base.sorted(by: state.sortOption)
     }
 
@@ -64,8 +61,13 @@ struct ExploreView: View {
             }
         }
         .searchable(text: $state.searchText)
+        .task(id: state.searchText) {
+            try? await Task.sleep(for: .milliseconds(300))
+            guard !Task.isCancelled else { return }
+            await store.fetchModels(search: state.searchText, sort: state.sortOption)
+        }
         .onChange(of: state.sortOption) {
-            Task { await store.fetchModels(sort: state.sortOption) }
+            Task { await store.fetchModels(search: state.searchText, sort: state.sortOption) }
         }
         .alert("Download Failed", isPresented: Binding(
             get: { store.downloadError != nil },
