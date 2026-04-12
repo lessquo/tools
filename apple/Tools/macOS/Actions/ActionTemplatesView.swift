@@ -8,7 +8,7 @@ struct ActionTemplatesView: View {
     var body: some View {
         @Bindable var store = store
         HSplitView {
-            List(selection: $store.selectedTemplateID) {
+            List(selection: $store.selectedTemplateIDs) {
                 ForEach(Array(templates.enumerated()), id: \.element.id) { index, template in
                     HStack {
                         Text("\(index + 1)")
@@ -40,10 +40,11 @@ struct ActionTemplatesView: View {
             }
             .frame(minWidth: 180, idealWidth: 220, maxWidth: 280)
 
-            if let selectedID = store.selectedTemplateID,
-               let template = templates.first(where: { $0.id == selectedID }) {
+            if store.selectedTemplateIDs.count > 1 {
+                MultiTemplateDetailView(templates: selectedTemplates)
+            } else if let template = selectedTemplates.first {
                 TemplateDetailView(template: template)
-                    .id(selectedID)
+                    .id(template.id)
                     .frame(minWidth: 300, maxWidth: .infinity)
             } else {
                 ContentUnavailableView(
@@ -55,10 +56,50 @@ struct ActionTemplatesView: View {
             }
         }
         .task {
-            if store.selectedTemplateID == nil {
-                store.selectedTemplateID = templates.first?.id
+            if store.selectedTemplateIDs.isEmpty {
+                if let firstID = templates.first?.id {
+                    store.selectedTemplateIDs = [firstID]
+                }
             }
         }
+    }
+
+    private var selectedTemplates: [Action] {
+        templates.filter { store.selectedTemplateIDs.contains($0.id) }
+    }
+}
+
+private struct MultiTemplateDetailView: View {
+    @Environment(ActionStore.self) private var store
+    let templates: [Action]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("\(templates.count) templates selected")
+                    .font(.title3.bold())
+                Spacer()
+                Button {
+                    store.addFromTemplates(templates)
+                } label: {
+                    Label("Add All to My Actions", systemImage: "plus")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+            }
+
+            List {
+                ForEach(templates) { template in
+                    HStack(spacing: 4) {
+                        Text(template.name)
+                        if template.type == .script {
+                            Text("JS").badgeStyle()
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
     }
 }
 

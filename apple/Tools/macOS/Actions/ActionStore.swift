@@ -13,7 +13,7 @@ final class ActionStore {
 
     var selectedTab = ActionsTab.myActions
     var selectedActionID: UUID?
-    var selectedTemplateID: UUID?
+    var selectedTemplateIDs: Set<UUID> = []
     private(set) var actions: [Action] = []
 
     init() {
@@ -36,6 +36,18 @@ final class ActionStore {
         actions.append(copy)
         save()
         selectedActionID = copy.id
+        selectedTab = .myActions
+    }
+
+    func addFromTemplates(_ templates: [Action]) {
+        var lastID: UUID?
+        for template in templates {
+            let copy = Action(id: UUID(), name: template.name, type: template.type, prompt: template.prompt, script: template.script)
+            actions.append(copy)
+            lastID = copy.id
+        }
+        save()
+        selectedActionID = lastID
         selectedTab = .myActions
     }
 
