@@ -34,8 +34,7 @@ struct ActionPanelView: View {
         .padding(12)
         .frame(width: 300)
         .fixedSize(horizontal: false, vertical: true)
-        .background(VisualEffectBackground())
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .modifier(GlassBackgroundModifier())
     }
 
     // MARK: - Action Grid
@@ -79,8 +78,8 @@ struct ActionPanelView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                 }
-                .buttonStyle(.bordered)
-                .tint(service.selectedActionIndex == index ? .accentColor : .secondary)
+                .buttonStyle(.plain)
+                .foregroundStyle(service.selectedActionIndex == index ? Color.accentColor : .primary)
             }
         }
     }
@@ -168,7 +167,22 @@ struct ActionPanelView: View {
     }
 }
 
-// MARK: - Visual Effect Background
+// MARK: - Glass Background
+
+private struct GlassBackgroundModifier: ViewModifier {
+    private let shape = RoundedRectangle(cornerRadius: 12)
+
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            content
+                .glassEffect(.regular, in: shape)
+        } else {
+            content
+                .background(VisualEffectBackground())
+                .clipShape(shape)
+        }
+    }
+}
 
 private struct VisualEffectBackground: NSViewRepresentable {
     func makeNSView(context: Context) -> NSVisualEffectView {

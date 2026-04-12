@@ -44,6 +44,10 @@ final class ActionPanel {
         )
         let hostingView = NSHostingView(rootView: view)
         hostingView.sizingOptions = .intrinsicContentSize
+        hostingView.wantsLayer = true
+        hostingView.layer?.backgroundColor = .clear
+        hostingView.layer?.cornerRadius = 12
+        hostingView.layer?.masksToBounds = true
 
         if panel == nil {
             let p = KeyablePanel(
