@@ -61,9 +61,18 @@ final class ModelStore {
 
     // MARK: - Init
 
+    private static let appCache: HubCache = {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let bundleID = Bundle.main.bundleIdentifier!
+        let modelsDir = appSupport.appendingPathComponent(bundleID, isDirectory: true)
+            .appendingPathComponent("Models", isDirectory: true)
+        try? FileManager.default.createDirectory(at: modelsDir, withIntermediateDirectories: true)
+        return HubCache(cacheDirectory: modelsDir)
+    }()
+
     init() {
-        self.client = HubClient.default
-        self.cache = HubCache.default
+        self.cache = Self.appCache
+        self.client = HubClient(cache: cache)
         self.selectedModelID = UserDefaults.standard.string(forKey: "selectedModelID") ?? ""
         scanDownloadedModels()
         Task { await fetchModels() }
