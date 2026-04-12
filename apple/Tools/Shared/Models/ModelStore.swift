@@ -298,10 +298,11 @@ extension [HuggingFace.Model] {
 
 extension Int {
     var compactFormatted: String {
+        let sig = FloatingPointFormatStyle<Double>.number.precision(.significantDigits(1...3))
         if self >= 1_000_000 {
-            return String(format: "%.1fM", Double(self) / 1_000_000)
+            return (Double(self) / 1_000_000).formatted(sig) + "M"
         } else if self >= 1_000 {
-            return String(format: "%.1fk", Double(self) / 1_000)
+            return (Double(self) / 1_000).formatted(sig) + "k"
         }
         return "\(self)"
     }
