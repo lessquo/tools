@@ -34,22 +34,32 @@ struct LibraryView: View {
                     HStack {
                         if downloadedTags.count >= 2 {
                             Picker("Task", selection: $state.filterTag) {
-                                Text("All").tag("")
+                                Text("All Tasks").tag("")
                                 ForEach(downloadedTags) { entry in
                                     Text(entry.label).tag(entry.id)
                                 }
                             }
+                            .labelsHidden()
                             .pickerStyle(.menu)
-                            .fixedSize()
+                            if !state.filterTag.isEmpty {
+                                Button {
+                                    state.filterTag = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(.secondary)
+                            }
                         }
                         Spacer()
-                        Picker("Sort by", selection: $state.sortOption) {
+                        Picker(selection: $state.sortOption) {
                             ForEach(ModelStore.SortOption.allCases, id: \.self) {
                                 Text($0.rawValue)
                             }
+                        } label: {
+                            Image(systemName: "arrow.up.arrow.down")
                         }
                         .pickerStyle(.menu)
-                        .fixedSize()
                     }
                     .listRowSeparator(.hidden)
                     ForEach(filteredModels, id: \.id) { model in

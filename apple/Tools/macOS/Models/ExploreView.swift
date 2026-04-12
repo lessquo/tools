@@ -27,19 +27,31 @@ struct ExploreView: View {
                     HStack {
                         if store.pipelineTags.count >= 2 {
                             Picker("Task", selection: $state.filterTag) {
-                                Text("All").tag("")
+                                Text("All Tasks").tag("")
                                 ForEach(store.pipelineTags) { entry in
                                     Text(entry.label).tag(entry.id)
                                 }
                             }
+                            .labelsHidden()
                             .pickerStyle(.menu)
                             .fixedSize()
+                            if !state.filterTag.isEmpty {
+                                Button {
+                                    state.filterTag = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(.secondary)
+                            }
                         }
                         Spacer()
-                        Picker("Sort by", selection: $state.sortOption) {
+                        Picker(selection: $state.sortOption) {
                             ForEach(ModelStore.SortOption.allCases, id: \.self) {
                                 Text($0.rawValue)
                             }
+                        } label: {
+                            Image(systemName: "arrow.up.arrow.down")
                         }
                         .pickerStyle(.menu)
                         .fixedSize()
