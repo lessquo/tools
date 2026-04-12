@@ -32,25 +32,21 @@ struct Action: Codable, Identifiable, Equatable {
     }
 
 
-    static let defaults: [Action] = [
-        Action(id: UUID(), name: "Fix Grammar", prompt: "Fix the grammar and spelling. Preserve the original language and tone. Output ONLY the result.\n\n{{input}}"),
-        Action(id: UUID(), name: "Summarize", prompt: "Summarize concisely. Output ONLY the result.\n\n{{input}}"),
-        Action(id: UUID(), name: "Translate to English", prompt: "Translate to English. Output ONLY the result.\n\n{{input}}"),
-        Action(id: UUID(), name: "Sort Lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
-        Action(id: UUID(), name: "Count Words", type: .script, script: "output = input.trim().split(/\\s+/).filter(w => w.length > 0).length + ' words'"),
-    ]
+    static let defaultNames: Set<String> = ["Fix grammar", "Summarize", "Translate to English", "Sort lines", "Count characters"]
+    static let defaults: [Action] = templates.filter { defaultNames.contains($0.name) }.map {
+        Action(id: UUID(), name: $0.name, type: $0.type, prompt: $0.prompt, script: $0.script)
+    }
 
     static let templates: [Action] = [
-        Action(id: UUID(), name: "Fix Grammar", prompt: "Fix the grammar and spelling. Preserve the original language and tone. Output ONLY the result.\n\n{{input}}"),
+        Action(id: UUID(), name: "Fix grammar", prompt: "Fix the grammar and spelling. Preserve the original language and tone. Output ONLY the result.\n\n{{input}}"),
         Action(id: UUID(), name: "Summarize", prompt: "Summarize concisely. Output ONLY the result.\n\n{{input}}"),
         Action(id: UUID(), name: "Translate to English", prompt: "Translate to English. Output ONLY the result.\n\n{{input}}"),
-        Action(id: UUID(), name: "Sort Lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
-        Action(id: UUID(), name: "Count Words", type: .script, script: "output = input.trim().split(/\\s+/).filter(w => w.length > 0).length + ' words'"),
-        Action(id: UUID(), name: "Title Case", type: .script, script: "output = input.replace(/\\w\\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())"),
-        Action(id: UUID(), name: "Lower Case", type: .script, script: "output = input.toLowerCase()"),
-        Action(id: UUID(), name: "Upper Case", type: .script, script: "output = input.toUpperCase()"),
-        Action(id: UUID(), name: "Snake Case", type: .script, script: "output = input.trim().replace(/[\\s-]+/g, '_').replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase()"),
-        Action(id: UUID(), name: "Kebab Case", type: .script, script: "output = input.trim().replace(/[\\s_]+/g, '-').replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()"),
+        Action(id: UUID(), name: "Sort lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
+        Action(id: UUID(), name: "Count characters", type: .script, script: "output = input.length"),
+        Action(id: UUID(), name: "Count lines", type: .script, script: "output = input.split('\\n').length"),
+        Action(id: UUID(), name: "Count words", type: .script, script: "output = input.trim().split(/\\s+/).length"),
+        Action(id: UUID(), name: "Lower case", type: .script, script: "output = input.toLowerCase()"),
+        Action(id: UUID(), name: "Upper case", type: .script, script: "output = input.toUpperCase()"),
     ]
 }
 

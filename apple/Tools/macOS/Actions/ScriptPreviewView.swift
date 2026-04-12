@@ -3,7 +3,7 @@ import SwiftUI
 
 struct ScriptPreviewView: View {
     let script: String
-    @State private var input = "hello World\nfoo Bar\ncamelCase\nthe quick brown fox"
+    @State private var input = "Hello World\n  Lorem ipsum dolor sit amet\nfooBAR\nthe quick brown fox"
     @State private var output = ""
     @State private var error: String?
 
