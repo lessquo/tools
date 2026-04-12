@@ -11,12 +11,9 @@ struct ExploreView: View {
     }
 
     var filteredModels: [HuggingFace.Model] {
-        let base = state.filterTags.isEmpty
+        let base = state.filterTag.isEmpty
             ? store.models
-            : store.models.filter {
-                guard let tag = $0.pipelineTag else { return false }
-                return state.filterTags.contains(tag)
-            }
+            : store.models.filter { $0.pipelineTag == state.filterTag }
         return base.sorted(by: state.sortOption)
     }
 
@@ -33,7 +30,14 @@ struct ExploreView: View {
                 List(selection: $selection) {
                     HStack {
                         if allTags.count >= 2 {
-                            TagBar(tags: allTags, selection: $state.filterTags)
+                            Picker("Task", selection: $state.filterTag) {
+                                Text("All").tag("")
+                                ForEach(allTags, id: \.self) { tag in
+                                    Text(tag).tag(tag)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .fixedSize()
                         }
                         Spacer()
                         Picker("Sort by", selection: $state.sortOption) {

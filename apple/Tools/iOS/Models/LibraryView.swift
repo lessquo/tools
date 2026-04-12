@@ -10,12 +10,9 @@ struct LibraryView: View {
     }
 
     var filteredModels: [HuggingFace.Model] {
-        var base = state.filterTags.isEmpty
+        var base = state.filterTag.isEmpty
             ? store.downloadedModels
-            : store.downloadedModels.filter {
-                guard let tag = $0.pipelineTag else { return false }
-                return state.filterTags.contains(tag)
-            }
+            : store.downloadedModels.filter { $0.pipelineTag == state.filterTag }
         if !state.searchText.isEmpty {
             base = base.filter { $0.id.rawValue.localizedCaseInsensitiveContains(state.searchText) }
         }
@@ -35,7 +32,14 @@ struct LibraryView: View {
                 List {
                     HStack {
                         if allTags.count >= 2 {
-                            TagBar(tags: allTags, selection: $state.filterTags)
+                            Picker("Task", selection: $state.filterTag) {
+                                Text("All").tag("")
+                                ForEach(allTags, id: \.self) { tag in
+                                    Text(tag).tag(tag)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .fixedSize()
                         }
                         Spacer()
                         Picker("Sort by", selection: $state.sortOption) {
