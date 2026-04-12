@@ -173,6 +173,7 @@ private struct ActionDetailView: View {
                     .foregroundStyle(.secondary)
                 TextEditor(text: $draft.script)
                     .font(.system(.body, design: .monospaced))
+                ScriptPreviewView(script: draft.script)
             }
         }
         .padding()

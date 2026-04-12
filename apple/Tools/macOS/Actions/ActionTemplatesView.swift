@@ -111,6 +111,10 @@ private struct TemplateDetailView: View {
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+
+            if template.type == .script {
+                ScriptPreviewView(script: template.script)
+            }
         }
         .padding()
     }
