@@ -56,20 +56,6 @@ struct ModelRow: View {
                 }
                 .buttonStyle(.borderless)
 
-            case .partial:
-                Button {
-                    store.startDownload(model)
-                } label: {
-                    Image(systemName: "arrow.down.circle")
-                }
-                .buttonStyle(.borderless)
-                Button {
-                    store.deletePartialDownload(model)
-                } label: {
-                    Image(systemName: "trash")
-                }
-                .buttonStyle(.borderless)
-
             case .downloading(let fraction):
                 ProgressView(value: fraction)
                     .frame(width: 60)
@@ -104,13 +90,6 @@ struct ModelRow: View {
             case .notDownloaded:
                 Button("Download") {
                     store.startDownload(model)
-                }
-            case .partial:
-                Button("Resume Download") {
-                    store.startDownload(model)
-                }
-                Button("Delete", role: .destructive) {
-                    store.deletePartialDownload(model)
                 }
             case .downloading:
                 Button("Cancel Download") {

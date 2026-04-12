@@ -28,7 +28,6 @@ final class ModelStore {
 
     enum DownloadState: Sendable, Equatable {
         case notDownloaded
-        case partial
         case downloading(fractionCompleted: Double)
         case downloaded
     }
@@ -111,14 +110,6 @@ final class ModelStore {
         let modelID = model.id.rawValue
         downloadTasks[modelID]?.cancel()
         downloadTasks[modelID] = nil
-        downloadStates[modelID] = .partial
-    }
-
-    func deletePartialDownload(_ model: HuggingFace.Model) {
-        let modelID = model.id.rawValue
-        let cacheDir = cache.repoDirectory(repo: model.id, kind: .model)
-        try? FileManager.default.removeItem(at: cacheDir)
-        resolvedPaths[modelID] = nil
         downloadStates[modelID] = .notDownloaded
     }
 
@@ -197,15 +188,13 @@ final class ModelStore {
             let repoString = parts[1] + "/" + parts.dropFirst(2).joined(separator: "--")
             guard let repoID = Repo.ID(rawValue: repoString) else { continue }
 
-            if let cached = cache.cachedFilePath(
+            guard let cached = cache.cachedFilePath(
                 repo: repoID, kind: .model, revision: "main",
                 filename: "config.json"
-            ) {
-                resolvedPaths[repoString] = cached.deletingLastPathComponent()
-                downloadStates[repoString] = .downloaded
-            } else {
-                downloadStates[repoString] = .partial
-            }
+            ) else { continue }
+
+            resolvedPaths[repoString] = cached.deletingLastPathComponent()
+            downloadStates[repoString] = .downloaded
 
             if let apiModel = models.first(where: { $0.id.rawValue == repoString }) {
                 found.append(apiModel)
@@ -236,11 +225,6 @@ final class ModelStore {
             ) {
                 downloadStates[modelID] = .downloaded
                 resolvedPaths[modelID] = cached.deletingLastPathComponent()
-            } else if FileManager.default.fileExists(
-                atPath: cache.repoDirectory(repo: model.id, kind: .model).path()
-            ) {
-                downloadStates[modelID] = .partial
-                resolvedPaths[modelID] = nil
             } else {
                 downloadStates[modelID] = .notDownloaded
                 resolvedPaths[modelID] = nil
