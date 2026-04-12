@@ -2,6 +2,7 @@ import AppKit
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
+    let navigationState = NavigationState()
     let modelStore = ModelStore()
     let modelsState = ModelsViewState()
     let libraryState = LibraryViewState()
