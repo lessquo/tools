@@ -76,10 +76,13 @@ struct ExploreView: View {
         .task(id: state.searchText) {
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else { return }
-            await store.fetchModels(search: state.searchText, sort: state.sortOption)
+            await store.fetchModels(search: state.searchText, sort: state.sortOption, pipelineTag: state.filterTag)
         }
         .onChange(of: state.sortOption) {
-            Task { await store.fetchModels(search: state.searchText, sort: state.sortOption) }
+            Task { await store.fetchModels(search: state.searchText, sort: state.sortOption, pipelineTag: state.filterTag) }
+        }
+        .onChange(of: state.filterTag) {
+            Task { await store.fetchModels(search: state.searchText, sort: state.sortOption, pipelineTag: state.filterTag) }
         }
         .alert("Download Failed", isPresented: Binding(
             get: { store.downloadError != nil },

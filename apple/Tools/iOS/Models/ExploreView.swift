@@ -74,7 +74,10 @@ struct ExploreView: View {
         }
         .searchable(text: $state.searchText)
         .onChange(of: state.sortOption) {
-            Task { await store.fetchModels(sort: state.sortOption) }
+            Task { await store.fetchModels(sort: state.sortOption, pipelineTag: state.filterTag) }
+        }
+        .onChange(of: state.filterTag) {
+            Task { await store.fetchModels(sort: state.sortOption, pipelineTag: state.filterTag) }
         }
         .alert("Download Failed", isPresented: Binding(
             get: { store.downloadError != nil },

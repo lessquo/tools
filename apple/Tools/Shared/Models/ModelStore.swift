@@ -77,18 +77,20 @@ final class ModelStore {
 
     // MARK: - Fetch
 
-    func fetchModels(search: String? = nil, sort: SortOption = .downloads) async {
+    func fetchModels(search: String? = nil, sort: SortOption = .downloads, pipelineTag: String? = nil) async {
         isFetching = true
         defer { isFetching = false }
 
         let query = search.flatMap { $0.isEmpty ? nil : $0 }
+        let tag = pipelineTag.flatMap { $0.isEmpty ? nil : $0 }
         guard let response = try? await client.listModels(
             search: query,
             author: "mlx-community",
             sort: sort.apiValue,
             direction: .descending,
             limit: 500,
-            config: true
+            config: true,
+            pipelineTag: tag
         ) else { return }
 
         guard !response.items.isEmpty else { return }
