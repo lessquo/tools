@@ -76,6 +76,8 @@ struct ModelRow: View {
                     Button("Delete", role: .destructive) {
                         try? store.deleteDownload(model)
                     }
+                    Divider()
+                    Link("View on Hugging Face", destination: URL(string: "https://huggingface.co/\(modelID)")!)
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
@@ -105,6 +107,8 @@ struct ModelRow: View {
                     try? store.deleteDownload(model)
                 }
             }
+            Divider()
+            Link("View on Hugging Face", destination: URL(string: "https://huggingface.co/\(modelID)")!)
         }
     }
 }
