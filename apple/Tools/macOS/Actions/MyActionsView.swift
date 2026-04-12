@@ -153,12 +153,21 @@ private struct ActionDetailView: View {
                 .textFieldStyle(.roundedBorder)
                 .focused($isNameFocused)
 
-            Picker("Type", selection: $draft.type) {
-                Text("LLM").tag(Action.ActionType.llm)
-                Text("Script").tag(Action.ActionType.script)
+            HStack(spacing: 12) {
+                Picker("Type", selection: $draft.type) {
+                    Text("LLM").tag(Action.ActionType.llm)
+                    Text("Script").tag(Action.ActionType.script)
+                }
+                .pickerStyle(.segmented)
+                .fixedSize()
+
+                Picker("Apply", selection: $draft.applyMode) {
+                    Text("Replace").tag(Action.ApplyMode.replace)
+                    Text("Append").tag(Action.ApplyMode.append)
+                }
+                .pickerStyle(.segmented)
+                .fixedSize()
             }
-            .pickerStyle(.segmented)
-            .fixedSize()
 
             switch draft.type {
             case .llm:

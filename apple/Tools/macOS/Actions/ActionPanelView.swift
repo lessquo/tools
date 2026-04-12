@@ -132,7 +132,7 @@ struct ActionPanelView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
             Spacer()
-            Button("Apply ⌘↩") {
+            Button("\(service.currentApplyMode == .replace ? "Replace" : "Append") ⌘↩") {
                 onClose()
                 Task {
                     await service.applyResult()
