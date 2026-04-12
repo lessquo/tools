@@ -34,6 +34,8 @@ struct ToolsApp: App {
                         appDelegate.actionStore.selectedTab = appDelegate.actionStore.selectedTab.previous
                     case .models:
                         appDelegate.modelsState.selectedTab = appDelegate.modelsState.selectedTab.previous
+                    case .shortcuts:
+                        break
                     }
                 }
                 .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
@@ -44,6 +46,8 @@ struct ToolsApp: App {
                         appDelegate.actionStore.selectedTab = appDelegate.actionStore.selectedTab.next
                     case .models:
                         appDelegate.modelsState.selectedTab = appDelegate.modelsState.selectedTab.next
+                    case .shortcuts:
+                        break
                     }
                 }
                 .keyboardShortcut(.rightArrow, modifiers: [.command, .option])

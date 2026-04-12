@@ -17,11 +17,13 @@ extension CaseIterable where Self: Equatable {
 enum SidebarItem: String, CaseIterable {
     case actions = "Actions"
     case models = "Models"
+    case shortcuts = "Shortcuts"
 
     var systemImage: String {
         switch self {
         case .actions: "bolt"
         case .models: "cube"
+        case .shortcuts: "command"
         }
     }
 }
@@ -42,6 +44,8 @@ struct MainView: View {
                 ActionsView()
             case .models:
                 ModelsView()
+            case .shortcuts:
+                ShortcutsView()
             }
         }
     }
