@@ -35,6 +35,10 @@ struct ModelRow: View {
                             .imageScale(.small)
                         Text((model.likes ?? 0).compactFormatted)
                     }
+                    if let tag = model.pipelineTag,
+                       let label = store.pipelineTags.first(where: { $0.id == tag })?.label {
+                        Text(label)
+                    }
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
