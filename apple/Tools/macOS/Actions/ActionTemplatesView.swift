@@ -32,8 +32,15 @@ struct ActionTemplatesView: View {
                     .tag(template.id)
                     .padding(.vertical, 4)
                     .contextMenu {
-                        Button("Add to My Actions") {
-                            store.addFromTemplate(template)
+                        if store.selectedTemplateIDs.contains(template.id),
+                           store.selectedTemplateIDs.count > 1 {
+                            Button("Add \(store.selectedTemplateIDs.count) to My Actions") {
+                                store.addFromTemplates(selectedTemplates)
+                            }
+                        } else {
+                            Button("Add to My Actions") {
+                                store.addFromTemplate(template)
+                            }
                         }
                     }
                 }

@@ -12,7 +12,7 @@ final class ActionStore {
     private static let storageKey = "actions"
 
     var selectedTab = ActionsTab.myActions
-    var selectedActionID: UUID?
+    var selectedActionIDs: Set<UUID> = []
     var selectedTemplateIDs: Set<UUID> = []
     private(set) var actions: [Action] = []
 
@@ -35,20 +35,25 @@ final class ActionStore {
         let copy = Action(id: UUID(), name: template.name, type: template.type, prompt: template.prompt, script: template.script)
         actions.append(copy)
         save()
-        selectedActionID = copy.id
+        selectedActionIDs = [copy.id]
         selectedTab = .myActions
     }
 
     func addFromTemplates(_ templates: [Action]) {
-        var lastID: UUID?
+        var newIDs: Set<UUID> = []
         for template in templates {
             let copy = Action(id: UUID(), name: template.name, type: template.type, prompt: template.prompt, script: template.script)
             actions.append(copy)
-            lastID = copy.id
+            newIDs.insert(copy.id)
         }
         save()
-        selectedActionID = lastID
+        selectedActionIDs = newIDs
         selectedTab = .myActions
+    }
+
+    func delete(ids: Set<UUID>) {
+        actions.removeAll { ids.contains($0.id) }
+        save()
     }
 
     func update(_ action: Action) {

@@ -7,7 +7,7 @@ struct MyActionsView: View {
     var body: some View {
         @Bindable var store = store
         HSplitView {
-            List(selection: $store.selectedActionID) {
+            List(selection: $store.selectedActionIDs) {
                 ForEach(Array(store.actions.enumerated()), id: \.element.id) { index, action in
                     HStack {
                         Text("\(index + 1)")
@@ -31,8 +31,15 @@ struct MyActionsView: View {
                     .tag(action.id)
                     .padding(.vertical, 4)
                     .contextMenu {
-                        Button("Delete", role: .destructive) {
-                            delete(action)
+                        if store.selectedActionIDs.contains(action.id),
+                           store.selectedActionIDs.count > 1 {
+                            Button("Delete \(store.selectedActionIDs.count) Actions", role: .destructive) {
+                                deleteSelected()
+                            }
+                        } else {
+                            Button("Delete", role: .destructive) {
+                                delete(action)
+                            }
                         }
                     }
                 }
@@ -40,14 +47,16 @@ struct MyActionsView: View {
             }
             .frame(minWidth: 180, idealWidth: 220, maxWidth: 280)
             .onDeleteCommand {
-                if let id = store.selectedActionID,
-                   let action = store.actions.first(where: { $0.id == id }) {
-                    delete(action)
-                }
+                deleteSelected()
             }
 
-            if let selectedID = store.selectedActionID,
-               let action = store.actions.first(where: { $0.id == selectedID }) {
+            if store.selectedActionIDs.count > 1 {
+                MultiActionDetailView(ids: store.selectedActionIDs) {
+                    deleteSelected()
+                }
+                .frame(minWidth: 300, maxWidth: .infinity)
+            } else if let selectedID = store.selectedActionIDs.first,
+                      let action = store.actions.first(where: { $0.id == selectedID }) {
                 ActionDetailView(action: action, focusName: focusNewActionID == selectedID)
                     .id(selectedID)
                     .onAppear { focusNewActionID = nil }
@@ -79,8 +88,10 @@ struct MyActionsView: View {
             }
         }
         .task {
-            if store.selectedActionID == nil {
-                store.selectedActionID = store.actions.first?.id
+            if store.selectedActionIDs.isEmpty {
+                if let firstID = store.actions.first?.id {
+                    store.selectedActionIDs = [firstID]
+                }
             }
         }
     }
@@ -89,17 +100,55 @@ struct MyActionsView: View {
         let action = Action(id: UUID(), name: "", prompt: "")
         store.add(action)
         focusNewActionID = action.id
-        store.selectedActionID = action.id
+        store.selectedActionIDs = [action.id]
     }
 
     private func delete(_ action: Action) {
         guard let idx = store.actions.firstIndex(where: { $0.id == action.id }) else { return }
-        let wasSelected = store.selectedActionID == action.id
+        let wasSelected = store.selectedActionIDs.contains(action.id)
         store.delete(at: IndexSet(integer: idx))
         if wasSelected {
-            let newIndex = min(idx, store.actions.count - 1)
-            store.selectedActionID = newIndex >= 0 ? store.actions[newIndex].id : nil
+            store.selectedActionIDs.remove(action.id)
+            if store.selectedActionIDs.isEmpty {
+                let newIndex = min(idx, store.actions.count - 1)
+                if newIndex >= 0 {
+                    store.selectedActionIDs = [store.actions[newIndex].id]
+                }
+            }
         }
+    }
+
+    private func deleteSelected() {
+        guard !store.selectedActionIDs.isEmpty else { return }
+        let ids = store.selectedActionIDs
+        let firstIdx = store.actions.firstIndex { ids.contains($0.id) } ?? 0
+        store.delete(ids: ids)
+        store.selectedActionIDs = []
+        if !store.actions.isEmpty {
+            let newIndex = min(firstIdx, store.actions.count - 1)
+            store.selectedActionIDs = [store.actions[newIndex].id]
+        }
+    }
+}
+
+private struct MultiActionDetailView: View {
+    @Environment(ActionStore.self) private var store
+    let ids: Set<UUID>
+    let onDelete: () -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("\(ids.count) actions selected")
+                .font(.title3.bold())
+
+            Button(role: .destructive) {
+                onDelete()
+            } label: {
+                Label("Delete Selected", systemImage: "trash")
+            }
+            .controlSize(.small)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
