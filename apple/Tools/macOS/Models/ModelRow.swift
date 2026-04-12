@@ -4,6 +4,7 @@ import SwiftUI
 struct ModelRow: View {
     @Environment(ModelStore.self) private var store
     let model: HuggingFace.Model
+    var onTagTap: ((String) -> Void)?
     var body: some View {
         let modelID = model.id.rawValue
         let state = store.downloadStates[modelID] ?? .notDownloaded
@@ -37,7 +38,9 @@ struct ModelRow: View {
                     }
                     if let tag = model.pipelineTag,
                        let label = store.pipelineTags.first(where: { $0.id == tag })?.label {
-                        Text(label)
+                        PipelineTagButton(label: label) {
+                            onTagTap?(tag)
+                        }
                     }
                 }
                 .font(.caption)
@@ -114,5 +117,18 @@ struct ModelRow: View {
             Divider()
             Link("View on Hugging Face", destination: URL(string: "https://huggingface.co/\(modelID)")!)
         }
+    }
+}
+
+private struct PipelineTagButton: View {
+    let label: String
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(label, action: action)
+            .buttonStyle(.plain)
+            .foregroundStyle(isHovered ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+            .onHover { isHovered = $0 }
     }
 }

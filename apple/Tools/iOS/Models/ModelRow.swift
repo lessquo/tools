@@ -4,6 +4,7 @@ import SwiftUI
 struct ModelRow: View {
     @Environment(ModelStore.self) private var store
     let model: HuggingFace.Model
+    var onTagTap: ((String) -> Void)?
     var body: some View {
         let modelID = model.id.rawValue
         let state = store.downloadStates[modelID] ?? .notDownloaded
@@ -37,7 +38,11 @@ struct ModelRow: View {
                     }
                     if let tag = model.pipelineTag,
                        let label = store.pipelineTags.first(where: { $0.id == tag })?.label {
-                        Text(label)
+                        Button(label) {
+                            onTagTap?(tag)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
                     }
                 }
                 .font(.caption)

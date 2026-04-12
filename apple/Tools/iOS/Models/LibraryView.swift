@@ -53,7 +53,7 @@ struct LibraryView: View {
                     }
                     .listRowSeparator(.hidden)
                     ForEach(filteredModels, id: \.id) { model in
-                        ModelRow(model: model)
+                        ModelRow(model: model, onTagTap: { state.filterTag = $0 })
                     }
                 }
                 .overlay {
