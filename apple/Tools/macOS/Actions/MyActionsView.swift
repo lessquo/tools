@@ -51,7 +51,12 @@ struct MyActionsView: View {
             }
 
             if store.selectedActionIDs.count > 1 {
-                MultiActionDetailView(ids: store.selectedActionIDs) {
+                MultiSelectionView(
+                    actions: store.actions.filter { store.selectedActionIDs.contains($0.id) },
+                    buttonLabel: "Delete Selected",
+                    buttonIcon: "trash",
+                    buttonRole: .destructive
+                ) {
                     deleteSelected()
                 }
                 .frame(minWidth: 300, maxWidth: .infinity)
@@ -128,27 +133,6 @@ struct MyActionsView: View {
             let newIndex = min(firstIdx, store.actions.count - 1)
             store.selectedActionIDs = [store.actions[newIndex].id]
         }
-    }
-}
-
-private struct MultiActionDetailView: View {
-    @Environment(ActionStore.self) private var store
-    let ids: Set<UUID>
-    let onDelete: () -> Void
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Text("\(ids.count) actions selected")
-                .font(.title3.bold())
-
-            Button(role: .destructive) {
-                onDelete()
-            } label: {
-                Label("Delete Selected", systemImage: "trash")
-            }
-            .controlSize(.small)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
