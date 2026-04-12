@@ -3,23 +3,27 @@ import SwiftUI
 
 struct ExploreView: View {
     @Environment(ModelStore.self) private var store
+    @Environment(ExploreViewState.self) private var state
 
     var allTags: [String] {
         Set(store.models.compactMap(\.pipelineTag)).sorted()
     }
 
     var filteredModels: [HuggingFace.Model] {
-        let base = store.exploreFilterTags.isEmpty
+        var base = state.filterTags.isEmpty
             ? store.models
             : store.models.filter {
                 guard let tag = $0.pipelineTag else { return false }
-                return store.exploreFilterTags.contains(tag)
+                return state.filterTags.contains(tag)
             }
-        return base.sorted(by: store.exploreSortOption)
+        if !state.searchText.isEmpty {
+            base = base.filter { $0.id.rawValue.localizedCaseInsensitiveContains(state.searchText) }
+        }
+        return base.sorted(by: state.sortOption)
     }
 
     var body: some View {
-        @Bindable var store = store
+        @Bindable var state = state
         Group {
             if store.models.isEmpty {
                 ContentUnavailableView(
@@ -31,10 +35,10 @@ struct ExploreView: View {
                 List {
                     HStack {
                         if allTags.count >= 2 {
-                            TagBar(tags: allTags, selection: $store.exploreFilterTags)
+                            TagBar(tags: allTags, selection: $state.filterTags)
                         }
                         Spacer()
-                        Picker("Sort by", selection: $store.exploreSortOption) {
+                        Picker("Sort by", selection: $state.sortOption) {
                             ForEach(ModelStore.SortOption.allCases, id: \.self) {
                                 Text($0.rawValue)
                             }
@@ -52,11 +56,15 @@ struct ExploreView: View {
                         ContentUnavailableView(
                             "No Results",
                             systemImage: "magnifyingglass",
-                            description: Text("Try adjusting your filters")
+                            description: Text("Try adjusting your search or filters")
                         )
                     }
                 }
             }
+        }
+        .searchable(text: $state.searchText)
+        .onChange(of: state.sortOption) {
+            Task { await store.fetchModels(sort: state.sortOption) }
         }
         .alert("Download Failed", isPresented: Binding(
             get: { store.downloadError != nil },

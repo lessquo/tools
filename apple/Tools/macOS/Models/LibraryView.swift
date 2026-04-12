@@ -3,6 +3,7 @@ import SwiftUI
 
 struct LibraryView: View {
     @Environment(ModelStore.self) private var store
+    @Environment(LibraryViewState.self) private var state
     @State private var selection: HuggingFace.Model.ID?
 
     var allTags: [String] {
@@ -10,17 +11,20 @@ struct LibraryView: View {
     }
 
     var filteredModels: [HuggingFace.Model] {
-        let base = store.libraryFilterTags.isEmpty
+        var base = state.filterTags.isEmpty
             ? store.downloadedModels
             : store.downloadedModels.filter {
                 guard let tag = $0.pipelineTag else { return false }
-                return store.libraryFilterTags.contains(tag)
+                return state.filterTags.contains(tag)
             }
-        return base.sorted(by: store.librarySortOption)
+        if !state.searchText.isEmpty {
+            base = base.filter { $0.id.rawValue.localizedCaseInsensitiveContains(state.searchText) }
+        }
+        return base.sorted(by: state.sortOption)
     }
 
     var body: some View {
-        @Bindable var store = store
+        @Bindable var state = state
         Group {
             if store.downloadedModels.isEmpty {
                 ContentUnavailableView(
@@ -32,10 +36,10 @@ struct LibraryView: View {
                 List(selection: $selection) {
                     HStack {
                         if allTags.count >= 2 {
-                            TagBar(tags: allTags, selection: $store.libraryFilterTags)
+                            TagBar(tags: allTags, selection: $state.filterTags)
                         }
                         Spacer()
-                        Picker("Sort by", selection: $store.librarySortOption) {
+                        Picker("Sort by", selection: $state.sortOption) {
                             ForEach(ModelStore.SortOption.allCases, id: \.self) {
                                 Text($0.rawValue)
                             }
@@ -53,10 +57,21 @@ struct LibraryView: View {
                         ContentUnavailableView(
                             "No Results",
                             systemImage: "magnifyingglass",
-                            description: Text("Try adjusting your filters")
+                            description: Text("Try adjusting your search or filters")
                         )
                     }
                 }
+            }
+        }
+        .searchable(text: $state.searchText)
+        .toolbar {
+            ToolbarItem {
+                Button {
+                    NSWorkspace.shared.open(store.cacheDirectory)
+                } label: {
+                    Image(systemName: "folder")
+                }
+                .help("Show in Finder")
             }
         }
         .alert("Download Failed", isPresented: Binding(

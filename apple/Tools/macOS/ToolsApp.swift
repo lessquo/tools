@@ -7,6 +7,9 @@ struct ToolsApp: App {
         Window("Tools", id: "main") {
             MainView()
                 .environment(appDelegate.modelStore)
+                .environment(appDelegate.modelsState)
+                .environment(appDelegate.libraryState)
+                .environment(appDelegate.exploreState)
                 .environment(appDelegate.actionStore)
         }
         .defaultSize(width: 1200, height: 700)

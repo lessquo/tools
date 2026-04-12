@@ -42,14 +42,6 @@ final class ModelStore {
     private var resolvedPaths: [String: URL] = [:]
     private var downloadTasks: [String: Task<Void, Never>] = [:]
 
-    var selectedTab = ModelsTab.library
-    var libraryFilterTags: Set<String> = []
-    var exploreFilterTags: Set<String> = []
-    var librarySortOption: SortOption = .downloads
-    var exploreSortOption: SortOption = .downloads {
-        didSet { Task { await fetchModels() } }
-    }
-
     var selectedModelID: String {
         didSet { UserDefaults.standard.set(selectedModelID, forKey: "selectedModelID") }
     }
@@ -80,13 +72,13 @@ final class ModelStore {
 
     // MARK: - Fetch
 
-    func fetchModels() async {
+    func fetchModels(sort: SortOption = .downloads) async {
         isFetching = true
         defer { isFetching = false }
 
         guard let response = try? await client.listModels(
             author: "mlx-community",
-            sort: exploreSortOption.apiValue,
+            sort: sort.apiValue,
             direction: .descending,
             limit: 500,
             config: true

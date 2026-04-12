@@ -3,6 +3,9 @@ import AppKit
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     let modelStore = ModelStore()
+    let modelsState = ModelsViewState()
+    let libraryState = LibraryViewState()
+    let exploreState = ExploreViewState()
     let aiService = AIService()
     let actionStore = ActionStore()
     private let shortcutManager = ShortcutManager()
