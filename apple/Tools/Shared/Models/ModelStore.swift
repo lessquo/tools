@@ -36,6 +36,7 @@ final class ModelStore {
 
     private(set) var models: [HuggingFace.Model] = []
     private(set) var downloadedModels: [HuggingFace.Model] = []
+    private(set) var pipelineTags: [PipelineTag] = []
     private(set) var isFetching = false
     var downloadStates: [String: DownloadState] = [:]
     var downloadError: String?
@@ -67,7 +68,11 @@ final class ModelStore {
         self.client = HubClient(cache: cache)
         self.selectedModelID = UserDefaults.standard.string(forKey: "selectedModelID") ?? ""
         scanDownloadedModels()
-        Task { await fetchModels() }
+        Task {
+            async let models: Void = fetchModels()
+            async let tags: Void = fetchPipelineTags()
+            _ = await (models, tags)
+        }
     }
 
     // MARK: - Fetch
@@ -90,6 +95,15 @@ final class ModelStore {
         models = response.items
         refreshDownloadStates()
         scanDownloadedModels()
+    }
+
+    func fetchPipelineTags() async {
+        guard let url = URL(string: "https://huggingface.co/api/models-tags-by-type?type=pipeline_tag"),
+              let (data, _) = try? await URLSession.shared.data(from: url),
+              let result = try? JSONDecoder().decode([String: [PipelineTag]].self, from: data),
+              let entries = result["pipeline_tag"]
+        else { return }
+        pipelineTags = entries.sorted { $0.label < $1.label }
     }
 
     // MARK: - Actions
@@ -234,6 +248,11 @@ final class ModelStore {
             }
         }
     }
+}
+
+struct PipelineTag: Decodable, Identifiable {
+    let id: String
+    let label: String
 }
 
 // MARK: - HuggingFace.Model Helpers

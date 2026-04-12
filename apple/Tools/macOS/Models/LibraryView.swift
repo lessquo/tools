@@ -6,8 +6,9 @@ struct LibraryView: View {
     @Environment(LibraryViewState.self) private var state
     @State private var selection: HuggingFace.Model.ID?
 
-    var allTags: [String] {
-        Set(store.downloadedModels.compactMap(\.pipelineTag)).sorted()
+    var downloadedTags: [PipelineTag] {
+        let ids = Set(store.downloadedModels.compactMap(\.pipelineTag))
+        return store.pipelineTags.filter { ids.contains($0.id) }
     }
 
     var filteredModels: [HuggingFace.Model] {
@@ -32,11 +33,11 @@ struct LibraryView: View {
             } else {
                 List(selection: $selection) {
                     HStack {
-                        if allTags.count >= 2 {
+                        if downloadedTags.count >= 2 {
                             Picker("Task", selection: $state.filterTag) {
                                 Text("All").tag("")
-                                ForEach(allTags, id: \.self) { tag in
-                                    Text(tag).tag(tag)
+                                ForEach(downloadedTags) { entry in
+                                    Text(entry.label).tag(entry.id)
                                 }
                             }
                             .pickerStyle(.menu)

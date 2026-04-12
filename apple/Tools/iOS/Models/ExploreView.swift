@@ -5,10 +5,6 @@ struct ExploreView: View {
     @Environment(ModelStore.self) private var store
     @Environment(ExploreViewState.self) private var state
 
-    var allTags: [String] {
-        Set(store.models.compactMap(\.pipelineTag)).sorted()
-    }
-
     var filteredModels: [HuggingFace.Model] {
         var base = state.filterTag.isEmpty
             ? store.models
@@ -31,11 +27,11 @@ struct ExploreView: View {
             } else {
                 List {
                     HStack {
-                        if allTags.count >= 2 {
+                        if store.pipelineTags.count >= 2 {
                             Picker("Task", selection: $state.filterTag) {
                                 Text("All").tag("")
-                                ForEach(allTags, id: \.self) { tag in
-                                    Text(tag).tag(tag)
+                                ForEach(store.pipelineTags) { entry in
+                                    Text(entry.label).tag(entry.id)
                                 }
                             }
                             .pickerStyle(.menu)
