@@ -46,6 +46,11 @@ struct Action: Codable, Identifiable, Equatable {
         Action(id: UUID(), name: "Translate to English", prompt: "Translate to English. Output ONLY the result.\n\n{{input}}"),
         Action(id: UUID(), name: "Sort Lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
         Action(id: UUID(), name: "Count Words", type: .script, script: "output = input.trim().split(/\\s+/).filter(w => w.length > 0).length + ' words'"),
+        Action(id: UUID(), name: "Title Case", type: .script, script: "output = input.replace(/\\w\\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())"),
+        Action(id: UUID(), name: "Lower Case", type: .script, script: "output = input.toLowerCase()"),
+        Action(id: UUID(), name: "Upper Case", type: .script, script: "output = input.toUpperCase()"),
+        Action(id: UUID(), name: "Snake Case", type: .script, script: "output = input.trim().replace(/[\\s-]+/g, '_').replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase()"),
+        Action(id: UUID(), name: "Kebab Case", type: .script, script: "output = input.trim().replace(/[\\s_]+/g, '-').replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()"),
     ]
 }
 
