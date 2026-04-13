@@ -55,11 +55,7 @@ struct ActionPanelView: View {
     }
 
     private var actionGrid: some View {
-        let columns = [
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-        ]
-        return LazyVGrid(columns: columns, spacing: 8) {
+        VStack(spacing: 0) {
             ForEach(Array(actions.enumerated()), id: \.element.id) { index, action in
                 Button {
                     onTriggerAction(action)
@@ -73,10 +69,11 @@ struct ActionPanelView: View {
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
                         }
+                        Spacer()
                     }
                     .font(.callout)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 4)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(service.selectedActionIndex == index ? Color.accentColor : .primary)

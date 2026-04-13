@@ -112,7 +112,6 @@ final class ActionPanel {
 
             let actions = self.actionStore.actions
             guard !actions.isEmpty else { return event }
-            let columns = 2
 
             // Number keys
             if let char = event.characters?.first,
@@ -124,15 +123,9 @@ final class ActionPanel {
 
             switch keyCode {
             case kVK_UpArrow:
-                service.selectedActionIndex = max(0, service.selectedActionIndex - columns)
-                return nil
-            case kVK_DownArrow:
-                service.selectedActionIndex = min(actions.count - 1, service.selectedActionIndex + columns)
-                return nil
-            case kVK_LeftArrow:
                 service.selectedActionIndex = max(0, service.selectedActionIndex - 1)
                 return nil
-            case kVK_RightArrow:
+            case kVK_DownArrow:
                 service.selectedActionIndex = min(actions.count - 1, service.selectedActionIndex + 1)
                 return nil
             case kVK_Return:

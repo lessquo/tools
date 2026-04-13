@@ -37,8 +37,6 @@ struct ShortcutsView: View {
                 ShortcutRow("Select Action by Number", keys: "1 – 9")
                 ShortcutRow("Navigate Up", keys: "↑")
                 ShortcutRow("Navigate Down", keys: "↓")
-                ShortcutRow("Navigate Left", keys: "←")
-                ShortcutRow("Navigate Right", keys: "→")
                 ShortcutRow("Trigger Selected Action", keys: "↩")
                 ShortcutRow("Apply Result", keys: "⌘ ↩")
             }
