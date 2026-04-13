@@ -67,6 +67,7 @@ final class ActionPanel {
         }
 
         panel?.contentView = hostingView
+        hostingView.layoutSubtreeIfNeeded()
 
         // Position near mouse cursor
         let mouseLocation = NSEvent.mouseLocation
@@ -84,7 +85,7 @@ final class ActionPanel {
             origin.y = min(origin.y, screen.maxY - panelSize.height)
         }
 
-        panel?.setFrameOrigin(origin)
+        panel?.setFrame(NSRect(origin: origin, size: panelSize), display: false)
         panel?.orderFrontRegardless()
         panel?.makeKey()
 
