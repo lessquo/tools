@@ -62,8 +62,6 @@ struct ActionPanelView: View {
                     onTriggerAction(action)
                 } label: {
                     HStack(spacing: 4) {
-                        Text("\(index + 1)")
-                            .foregroundStyle(.tertiary)
                         Text(action.name)
                         if action.type == .script {
                             Image(systemName: "chevron.left.forwardslash.chevron.right")
@@ -71,6 +69,10 @@ struct ActionPanelView: View {
                                 .foregroundStyle(.tertiary)
                         }
                         Spacer()
+                        if index < 9 {
+                            Text("\(index + 1)")
+                                .foregroundStyle(.tertiary)
+                        }
                     }
                     .font(.callout)
                     .padding(.horizontal, 5)
