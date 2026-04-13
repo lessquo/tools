@@ -16,7 +16,7 @@ struct ActionPanelView: View {
                 if actions.isEmpty {
                     emptyState
                 } else {
-                    actionGrid
+                    actionList
                 }
             case .copying:
                 statusLabel("Copying...", systemImage: "doc.on.clipboard")
@@ -37,7 +37,7 @@ struct ActionPanelView: View {
         .modifier(GlassBackgroundModifier())
     }
 
-    // MARK: - Action Grid
+    // MARK: - Action List
 
     private var emptyState: some View {
         VStack(spacing: 8) {
@@ -54,7 +54,7 @@ struct ActionPanelView: View {
         .padding(.vertical, 8)
     }
 
-    private var actionGrid: some View {
+    private var actionList: some View {
         VStack(spacing: 0) {
             ForEach(Array(actions.enumerated()), id: \.element.id) { index, action in
                 Button {
