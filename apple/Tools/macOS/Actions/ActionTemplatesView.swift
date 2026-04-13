@@ -9,25 +9,18 @@ struct ActionTemplatesView: View {
         @Bindable var store = store
         HSplitView {
             List(selection: $store.selectedTemplateIDs) {
-                ForEach(Array(templates.enumerated()), id: \.element.id) { index, template in
-                    HStack {
-                        Text("\(index + 1)")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .frame(width: 16, alignment: .trailing)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack(spacing: 4) {
-                                Text(template.name)
-                                if template.type == .script {
-                                    Text("JS").badgeStyle()
-                                }
+                ForEach(templates) { template in
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 4) {
+                            Text(template.name)
+                            if template.type == .script {
+                                Text("JS").badgeStyle()
                             }
-                            Text(template.type == .llm ? template.prompt : template.script)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
                         }
+                        Text(template.type == .llm ? template.prompt : template.script)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
                     }
                     .tag(template.id)
                     .padding(.vertical, 4)

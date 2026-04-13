@@ -8,25 +8,18 @@ struct MyActionsView: View {
         @Bindable var store = store
         HSplitView {
             List(selection: $store.selectedActionIDs) {
-                ForEach(Array(store.actions.enumerated()), id: \.element.id) { index, action in
-                    HStack {
-                        Text("\(index + 1)")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .frame(width: 16, alignment: .trailing)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack(spacing: 4) {
-                                Text(action.name.isEmpty ? "Untitled" : action.name)
-                                if action.type == .script {
-                                    Text("JS").badgeStyle()
-                                }
+                ForEach(store.actions) { action in
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 4) {
+                            Text(action.name.isEmpty ? "Untitled" : action.name)
+                            if action.type == .script {
+                                Text("JS").badgeStyle()
                             }
-                            Text(action.type == .llm ? action.prompt : action.script)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
                         }
+                        Text(action.type == .llm ? action.prompt : action.script)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
                     }
                     .tag(action.id)
                     .padding(.vertical, 4)
