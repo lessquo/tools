@@ -73,6 +73,7 @@ struct ActionPanelView: View {
                         Spacer()
                     }
                     .font(.callout)
+                    .padding(.horizontal, 5)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 4)
                     .contentShape(Rectangle())
@@ -95,6 +96,7 @@ struct ActionPanelView: View {
                     .font(.body)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 5)
             }
             .frame(maxHeight: 300)
 
