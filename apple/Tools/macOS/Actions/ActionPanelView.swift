@@ -2,24 +2,16 @@ import SwiftUI
 
 struct ActionPanelView: View {
     @Bindable var service: ActionService
-    let actions: [Action]
     @FocusState private var isEditorFocused: Bool
     @State private var editorMeasuredHeight: CGFloat = 0
     let onClose: () -> Void
     let onDismiss: () -> Void
     let onMakeKey: () -> Void
-    let onTriggerAction: (Action) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
             switch service.status {
-            case .idle:
-                if actions.isEmpty {
-                    emptyState
-                } else {
-                    actionList
-                }
-            case .copying:
+            case .idle, .copying:
                 statusLabel("Copying...", systemImage: "doc.on.clipboard")
             case .processing(_, let result):
                 previewArea(result, isStreaming: true)
@@ -36,57 +28,6 @@ struct ActionPanelView: View {
         .frame(width: 300)
         .fixedSize(horizontal: false, vertical: true)
         .modifier(GlassBackgroundModifier())
-    }
-
-    // MARK: - Action List
-
-    private var emptyState: some View {
-        VStack(spacing: 8) {
-            Text("No actions configured.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-            Text("Open Tools to add actions.")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-            Button("Dismiss") { onDismiss() }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-        }
-        .padding(.vertical, 8)
-    }
-
-    private var actionList: some View {
-        VStack(spacing: 0) {
-            ForEach(Array(actions.enumerated()), id: \.element.id) { index, action in
-                Button {
-                    onTriggerAction(action)
-                } label: {
-                    HStack(spacing: 4) {
-                        Text(action.name)
-                        if action.type == .script {
-                            Image(systemName: "chevron.left.forwardslash.chevron.right")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                        }
-                        Spacer()
-                        if index < 9 {
-                            Text("\(index + 1)")
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                    .font(.callout)
-                    .padding(.horizontal, 5)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(service.selectedActionIndex == index ? Color.accentColor : .primary)
-                .onHover { hovering in
-                    if hovering { service.selectedActionIndex = index }
-                }
-            }
-        }
     }
 
     // MARK: - Preview

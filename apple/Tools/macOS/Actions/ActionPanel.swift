@@ -17,30 +17,66 @@ final class ActionPanel {
     private let aiService: AIService
     private let modelStore: ModelStore
     private let actionStore: ActionStore
+    private let menuHandler = ActionMenuHandler()
+    private var panelOrigin: CGPoint = .zero
 
     init(aiService: AIService, modelStore: ModelStore, actionStore: ActionStore) {
         self.aiService = aiService
         self.modelStore = modelStore
         self.actionStore = actionStore
+        menuHandler.onPick = { [weak self] action in
+            self?.handleMenuPick(action)
+        }
     }
 
     var isVisible: Bool { panel?.isVisible ?? false }
 
     func toggle() {
-        if isVisible { dismiss() } else { show() }
+        if isVisible { dismiss() } else { showMenu() }
     }
 
-    func show() {
+    private func showMenu() {
+        panelOrigin = NSEvent.mouseLocation
+        let actions = actionStore.actions
+        let menu = NSMenu()
+        menu.autoenablesItems = false
+
+        if actions.isEmpty {
+            let item = NSMenuItem(title: "No actions configured", action: nil, keyEquivalent: "")
+            item.isEnabled = false
+            menu.addItem(item)
+        } else {
+            for (index, action) in actions.enumerated() {
+                let keyEquivalent = index < 9 ? "\(index + 1)" : ""
+                let item = NSMenuItem(
+                    title: action.name,
+                    action: #selector(ActionMenuHandler.pick(_:)),
+                    keyEquivalent: keyEquivalent
+                )
+                item.keyEquivalentModifierMask = []
+                item.target = menuHandler
+                item.representedObject = action
+                menu.addItem(item)
+            }
+        }
+
+        menu.popUp(positioning: nil, at: panelOrigin, in: nil)
+    }
+
+    private func handleMenuPick(_ action: Action) {
+        presentPanel()
+        triggerAction(action)
+    }
+
+    private func presentPanel() {
         let service = ActionService(ai: aiService, modelStore: modelStore)
         self.service = service
 
         let view = ActionPanelView(
             service: service,
-            actions: actionStore.actions,
             onClose: { [weak self] in self?.close() },
             onDismiss: { [weak self] in self?.dismiss() },
-            onMakeKey: { [weak self] in self?.panel?.makeKey() },
-            onTriggerAction: { [weak self] action in self?.triggerAction(action) }
+            onMakeKey: { [weak self] in self?.panel?.makeKey() }
         )
         let hostingView = NSHostingView(rootView: view)
         hostingView.sizingOptions = .intrinsicContentSize
@@ -69,12 +105,11 @@ final class ActionPanel {
         panel?.contentView = hostingView
         hostingView.layoutSubtreeIfNeeded()
 
-        // Position near mouse cursor
-        let mouseLocation = NSEvent.mouseLocation
+        // Position near where the menu was invoked
         let panelSize = hostingView.fittingSize
         var origin = CGPoint(
-            x: mouseLocation.x,
-            y: mouseLocation.y - panelSize.height
+            x: panelOrigin.x,
+            y: panelOrigin.y - panelSize.height
         )
 
         // Clamp to screen bounds
@@ -108,32 +143,7 @@ final class ActionPanel {
                 return nil
             }
 
-            guard case .idle = service.status else { return event }
-
-            let actions = self.actionStore.actions
-            guard !actions.isEmpty else { return event }
-
-            // Number keys
-            if let char = event.characters?.first,
-               let num = Int(String(char)),
-               num >= 1, num <= actions.count {
-                self.triggerAction(actions[num - 1])
-                return nil
-            }
-
-            switch keyCode {
-            case kVK_UpArrow:
-                service.selectedActionIndex = max(0, service.selectedActionIndex - 1)
-                return nil
-            case kVK_DownArrow:
-                service.selectedActionIndex = min(actions.count - 1, service.selectedActionIndex + 1)
-                return nil
-            case kVK_Return:
-                self.triggerAction(actions[service.selectedActionIndex])
-                return nil
-            default:
-                return event
-            }
+            return event
         }
     }
 
@@ -162,5 +172,14 @@ final class ActionPanel {
             guard let text = await service.copySelectedText() else { return }
             await service.processAction(action, text: text)
         }
+    }
+}
+
+private final class ActionMenuHandler: NSObject {
+    var onPick: ((Action) -> Void)?
+
+    @objc func pick(_ sender: NSMenuItem) {
+        guard let action = sender.representedObject as? Action else { return }
+        onPick?(action)
     }
 }
