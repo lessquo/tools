@@ -4,6 +4,7 @@ struct ActionPanelView: View {
     @Bindable var service: ActionService
     let actions: [Action]
     @FocusState private var isEditorFocused: Bool
+    @State private var editorMeasuredHeight: CGFloat = 0
     let onClose: () -> Void
     let onDismiss: () -> Void
     let onMakeKey: () -> Void
@@ -117,7 +118,24 @@ struct ActionPanelView: View {
         TextEditor(text: $service.editedResult)
             .font(.body)
             .scrollContentBackground(.hidden)
-            .frame(maxHeight: 300)
+            .frame(height: min(max(editorMeasuredHeight, 24), 300))
+            .background(
+                Text(service.editedResult.isEmpty ? " " : service.editedResult)
+                    .font(.body)
+                    .padding(.horizontal, 5)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.preference(
+                                key: EditorHeightKey.self,
+                                value: geo.size.height
+                            )
+                        }
+                    )
+                    .hidden()
+            )
+            .onPreferenceChange(EditorHeightKey.self) { editorMeasuredHeight = $0 }
             .focused($isEditorFocused)
             .onAppear {
                 onMakeKey()
@@ -165,6 +183,13 @@ struct ActionPanelView: View {
                 .controlSize(.small)
         }
         .padding(.vertical, 8)
+    }
+}
+
+private struct EditorHeightKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 
