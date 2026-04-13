@@ -74,9 +74,13 @@ struct ActionPanelView: View {
                     .font(.callout)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 4)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(service.selectedActionIndex == index ? Color.accentColor : .primary)
+                .onHover { hovering in
+                    if hovering { service.selectedActionIndex = index }
+                }
             }
         }
     }
