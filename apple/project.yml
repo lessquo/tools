@@ -6,12 +6,15 @@ options:
     iOS: "17.0"
 
 packages:
-  swift-huggingface:
-    url: https://github.com/huggingface/swift-huggingface
-    from: 0.9.0
+  mlx-audio-swift:
+    url: https://github.com/Blaizzy/mlx-audio-swift
+    branch: main
   mlx-swift-lm:
     url: https://github.com/ml-explore/mlx-swift-lm
     from: 2.31.3
+  swift-huggingface:
+    url: https://github.com/huggingface/swift-huggingface
+    from: 0.9.0
 
 targets:
   Tools-iOS:
@@ -61,11 +64,15 @@ targets:
           - $(inherited)
           - "@executable_path/../Frameworks"
     dependencies:
-      - package: swift-huggingface
-        product: HuggingFace
+      - package: mlx-audio-swift
+        product: MLXAudioCore
+      - package: mlx-audio-swift
+        product: MLXAudioSTT
       - package: mlx-swift-lm
         product: MLXLLM
       - package: mlx-swift-lm
         product: MLXLMCommon
+      - package: swift-huggingface
+        product: HuggingFace
     entitlements:
       path: Tools/macOS/Tools.entitlements

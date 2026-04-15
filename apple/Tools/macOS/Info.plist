@@ -14,5 +14,7 @@
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Tools transcribes your voice on-device for push-to-talk dictation.</string>
 </dict>
 </plist>

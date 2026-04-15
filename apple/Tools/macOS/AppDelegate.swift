@@ -11,6 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let actionStore = ActionStore()
     private let shortcutManager = ShortcutManager()
     private var panel: ActionPanel?
+    private var dictationController: DictationController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let p = ActionPanel(aiService: aiService, modelStore: modelStore, actionStore: actionStore)
@@ -18,8 +19,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         shortcutManager.onActivate = { [weak p] in
             p?.toggle()
         }
+        dictationController = DictationController(modelStore: modelStore)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.shortcutManager.start()
+            self?.dictationController?.start()
         }
     }
 }
