@@ -31,11 +31,12 @@ struct Action: Codable, Identifiable, Equatable {
         script = try container.decodeIfPresent(String.self, forKey: .script) ?? ""
     }
 
+    func copy(id: UUID = UUID()) -> Action {
+        Action(id: id, name: name, type: type, prompt: prompt, script: script)
+    }
 
     static let defaultNames: Set<String> = ["Fix grammar", "Summarize", "Translate to English", "Sort lines", "Count characters"]
-    static let defaults: [Action] = templates.filter { defaultNames.contains($0.name) }.map {
-        Action(id: UUID(), name: $0.name, type: $0.type, prompt: $0.prompt, script: $0.script)
-    }
+    static let defaults: [Action] = templates.filter { defaultNames.contains($0.name) }.map { $0.copy() }
 
     static let templates: [Action] = [
         // LLM

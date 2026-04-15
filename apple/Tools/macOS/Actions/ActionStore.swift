@@ -25,7 +25,7 @@ final class ActionStore {
 
     @discardableResult
     func addFromTemplate(_ template: Action) -> UUID {
-        let copy = Action(id: UUID(), name: template.name, type: template.type, prompt: template.prompt, script: template.script)
+        let copy = template.copy()
         actions.append(copy)
         save()
         return copy.id
@@ -35,7 +35,7 @@ final class ActionStore {
     func addFromTemplates(_ templates: [Action]) -> Set<UUID> {
         var newIDs: Set<UUID> = []
         for template in templates {
-            let copy = Action(id: UUID(), name: template.name, type: template.type, prompt: template.prompt, script: template.script)
+            let copy = template.copy()
             actions.append(copy)
             newIDs.insert(copy.id)
         }
@@ -46,7 +46,7 @@ final class ActionStore {
     @discardableResult
     func duplicate(_ action: Action) -> UUID? {
         guard let index = actions.firstIndex(where: { $0.id == action.id }) else { return nil }
-        let copy = Action(id: UUID(), name: action.name, type: action.type, prompt: action.prompt, script: action.script)
+        let copy = action.copy()
         actions.insert(copy, at: index + 1)
         save()
         return copy.id
