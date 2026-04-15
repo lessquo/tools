@@ -45,11 +45,13 @@ struct QuickstartView: View {
                         label: "Speech-to-text model",
                         isReady: hasSTTModel,
                         actionLabel: "Install",
+                        readyActionLabel: "Browse",
                         action: { openExplore(filterTag: "automatic-speech-recognition") }
                     ),
                     .init(
                         id: "accessibility",
                         label: "Accessibility access",
+                        detail: "Used to detect the fn key across apps.",
                         isReady: accessibilityGranted,
                         actionLabel: "Grant",
                         action: ClipboardService.requestAccessibilityPermission
@@ -57,6 +59,7 @@ struct QuickstartView: View {
                     .init(
                         id: "microphone",
                         label: "Microphone access",
+                        detail: "Used to capture your voice for transcription.",
                         isReady: microphoneGranted,
                         actionLabel: "Grant",
                         action: requestMicrophone
@@ -74,11 +77,13 @@ struct QuickstartView: View {
                         label: "Text-generation model",
                         isReady: hasChatModel,
                         actionLabel: "Install",
+                        readyActionLabel: "Browse",
                         action: { openExplore(filterTag: "text-generation") }
                     ),
                     .init(
                         id: "accessibility",
                         label: "Accessibility access",
+                        detail: "Used to detect ⌘; across apps.",
                         isReady: accessibilityGranted,
                         actionLabel: "Grant",
                         action: ClipboardService.requestAccessibilityPermission
@@ -136,8 +141,10 @@ private struct FeatureCard: View {
     struct Requirement: Identifiable {
         let id: String
         let label: String
+        var detail: String? = nil
         let isReady: Bool
         let actionLabel: String
+        var readyActionLabel: String? = nil
         let action: () -> Void
     }
 
@@ -156,7 +163,7 @@ private struct FeatureCard: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(title).font(.headline)
+                    Text(title).font(.title2).bold()
                     Text(shortcut)
                         .font(.caption)
                         .monospaced()
@@ -186,15 +193,25 @@ private struct RequirementRow: View {
     let requirement: FeatureCard.Requirement
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
             Image(systemName: requirement.isReady ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                 .foregroundStyle(requirement.isReady ? .green : .orange)
                 .font(.footnote)
-            Text(requirement.label)
-                .font(.callout)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(requirement.label)
+                    .font(.callout)
+                if let detail = requirement.detail {
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
             Spacer(minLength: 8)
             if !requirement.isReady {
                 Button(requirement.actionLabel, action: requirement.action)
+                    .controlSize(.small)
+            } else if let readyLabel = requirement.readyActionLabel {
+                Button(readyLabel, action: requirement.action)
                     .controlSize(.small)
             }
         }
