@@ -4,7 +4,7 @@ import Foundation
 /// fn down → show panel, load model, start capture
 /// fn up   → stop capture, transcribe, paste, close panel
 @MainActor
-final class DictationController {
+final class DictationService {
 
     private let modelStore: ModelStore
     private let audio = AudioCaptureService()
