@@ -13,7 +13,8 @@ final class DictationPanel {
     init(audio: AudioCaptureService, stt: STTService) {
         let view = DictationPanelView(audio: audio, stt: stt)
         let hosting = NSHostingView(rootView: view)
-        hosting.frame = NSRect(x: 0, y: 0, width: 220, height: 56)
+        hosting.sizingOptions = [.intrinsicContentSize]
+        hosting.frame = NSRect(origin: .zero, size: hosting.fittingSize)
         self.hostingView = hosting
 
         let panel = NSPanel(

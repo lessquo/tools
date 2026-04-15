@@ -6,39 +6,22 @@ struct DictationPanelView: View {
     @Bindable var stt: STTService
 
     var body: some View {
-        HStack(spacing: 12) {
-            leadingIndicator
-            Text(label)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(.primary)
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(.white.opacity(0.08), lineWidth: 0.5)
-        )
-    }
-
-    private var isTranscribing: Bool {
-        stt.state == .transcribing
-    }
-
-    private var label: String {
-        isTranscribing ? "Transcribing…" : "Listening…"
+        indicator
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(.thinMaterial, in: Capsule())
+            .overlay(Capsule().strokeBorder(.white.opacity(0.08), lineWidth: 0.5))
     }
 
     @ViewBuilder
-    private var leadingIndicator: some View {
-        if isTranscribing {
+    private var indicator: some View {
+        if stt.state == .transcribing {
             ProgressView()
                 .controlSize(.small)
-                .frame(width: 28, height: 28)
+                .frame(width: 28, height: 20)
         } else {
             Waveform(level: audio.level)
-                .frame(width: 28, height: 28)
+                .frame(width: 28, height: 20)
         }
     }
 }
@@ -62,6 +45,6 @@ private struct Waveform: View {
 
     private func height(for index: Int) -> CGFloat {
         let normalized = max(0.08, CGFloat(level * weights[index]))
-        return max(4, min(26, normalized * 26))
+        return max(4, min(18, normalized * 18))
     }
 }
