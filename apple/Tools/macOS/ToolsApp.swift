@@ -12,6 +12,9 @@ struct ToolsApp: App {
                 .environment(appDelegate.libraryState)
                 .environment(appDelegate.exploreState)
                 .environment(appDelegate.actionStore)
+                .environment(appDelegate.actionsState)
+                .environment(appDelegate.myActionsState)
+                .environment(appDelegate.templatesState)
         }
         .defaultSize(width: 1200, height: 700)
         .commands {
@@ -31,7 +34,7 @@ struct ToolsApp: App {
                 Button("Previous Tab") {
                     switch appDelegate.navigationState.sidebarItem {
                     case .actions:
-                        appDelegate.actionStore.selectedTab = appDelegate.actionStore.selectedTab.previous
+                        appDelegate.actionsState.selectedTab = appDelegate.actionsState.selectedTab.previous
                     case .models:
                         appDelegate.modelsState.selectedTab = appDelegate.modelsState.selectedTab.previous
                     case .shortcuts:
@@ -43,7 +46,7 @@ struct ToolsApp: App {
                 Button("Next Tab") {
                     switch appDelegate.navigationState.sidebarItem {
                     case .actions:
-                        appDelegate.actionStore.selectedTab = appDelegate.actionStore.selectedTab.next
+                        appDelegate.actionsState.selectedTab = appDelegate.actionsState.selectedTab.next
                     case .models:
                         appDelegate.modelsState.selectedTab = appDelegate.modelsState.selectedTab.next
                     case .shortcuts:

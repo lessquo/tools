@@ -9,6 +9,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let exploreState = ExploreViewState()
     let aiService = AIService()
     let actionStore = ActionStore()
+    let actionsState = ActionsViewState()
+    let myActionsState = MyActionsViewState()
+    let templatesState = TemplatesViewState()
     private let shortcutManager = ShortcutManager()
     private var panel: ActionPanel?
     private var dictationController: DictationController?

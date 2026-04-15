@@ -1,14 +1,23 @@
 import SwiftUI
 
-struct ActionTemplatesView: View {
+@Observable
+@MainActor
+final class TemplatesViewState {
+    var selectedTemplateIDs: Set<UUID> = []
+}
+
+struct TemplatesView: View {
     @Environment(ActionStore.self) private var store
+    @Environment(TemplatesViewState.self) private var state
+    @Environment(MyActionsViewState.self) private var myActionsState
+    @Environment(ActionsViewState.self) private var actionsState
 
     private let templates = Action.templates
 
     var body: some View {
-        @Bindable var store = store
+        @Bindable var state = state
         HSplitView {
-            List(selection: $store.selectedTemplateIDs) {
+            List(selection: $state.selectedTemplateIDs) {
                 ForEach(templates) { template in
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 4) {
@@ -25,14 +34,14 @@ struct ActionTemplatesView: View {
                     .tag(template.id)
                     .padding(.vertical, 4)
                     .contextMenu {
-                        if store.selectedTemplateIDs.contains(template.id),
-                           store.selectedTemplateIDs.count > 1 {
-                            Button("Add \(store.selectedTemplateIDs.count) to My Actions") {
-                                store.addFromTemplates(selectedTemplates)
+                        if state.selectedTemplateIDs.contains(template.id),
+                           state.selectedTemplateIDs.count > 1 {
+                            Button("Add \(state.selectedTemplateIDs.count) to My Actions") {
+                                addSelectedTemplates()
                             }
                         } else {
                             Button("Add to My Actions") {
-                                store.addFromTemplate(template)
+                                addTemplate(template)
                             }
                         }
                     }
@@ -40,14 +49,14 @@ struct ActionTemplatesView: View {
             }
             .frame(minWidth: 180, idealWidth: 220, maxWidth: 280)
 
-            if store.selectedTemplateIDs.count > 1 {
+            if state.selectedTemplateIDs.count > 1 {
                 MultiSelectionView(
                     actions: selectedTemplates,
                     buttonLabel: "Add All to My Actions",
                     buttonIcon: "plus",
                     buttonStyle: .borderedProminent
                 ) {
-                    store.addFromTemplates(selectedTemplates)
+                    addSelectedTemplates()
                 }
             } else if let template = selectedTemplates.first {
                 TemplateDetailView(template: template)
@@ -63,21 +72,35 @@ struct ActionTemplatesView: View {
             }
         }
         .task {
-            if store.selectedTemplateIDs.isEmpty {
+            if state.selectedTemplateIDs.isEmpty {
                 if let firstID = templates.first?.id {
-                    store.selectedTemplateIDs = [firstID]
+                    state.selectedTemplateIDs = [firstID]
                 }
             }
         }
     }
 
     private var selectedTemplates: [Action] {
-        templates.filter { store.selectedTemplateIDs.contains($0.id) }
+        templates.filter { state.selectedTemplateIDs.contains($0.id) }
+    }
+
+    private func addTemplate(_ template: Action) {
+        let newID = store.addFromTemplate(template)
+        myActionsState.selectedActionIDs = [newID]
+        actionsState.selectedTab = .myActions
+    }
+
+    private func addSelectedTemplates() {
+        let newIDs = store.addFromTemplates(selectedTemplates)
+        myActionsState.selectedActionIDs = newIDs
+        actionsState.selectedTab = .myActions
     }
 }
 
 private struct TemplateDetailView: View {
     @Environment(ActionStore.self) private var store
+    @Environment(MyActionsViewState.self) private var myActionsState
+    @Environment(ActionsViewState.self) private var actionsState
     let template: Action
 
     var body: some View {
@@ -90,7 +113,9 @@ private struct TemplateDetailView: View {
                 }
                 Spacer()
                 Button {
-                    store.addFromTemplate(template)
+                    let newID = store.addFromTemplate(template)
+                    myActionsState.selectedActionIDs = [newID]
+                    actionsState.selectedTab = .myActions
                 } label: {
                     Label("Add to My Actions", systemImage: "plus")
                 }

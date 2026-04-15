@@ -1,20 +1,31 @@
 import SwiftUI
 
+enum ActionsTab: String, CaseIterable {
+    case myActions = "My Actions"
+    case templates = "Templates"
+}
+
+@Observable
+@MainActor
+final class ActionsViewState {
+    var selectedTab = ActionsTab.myActions
+}
+
 struct ActionsView: View {
-    @Environment(ActionStore.self) private var store
+    @Environment(ActionsViewState.self) private var state
 
     var body: some View {
-        @Bindable var store = store
+        @Bindable var state = state
         Group {
-            switch store.selectedTab {
+            switch state.selectedTab {
             case .myActions: MyActionsView()
-            case .templates: ActionTemplatesView()
+            case .templates: TemplatesView()
             }
         }
         .navigationTitle("Actions")
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Picker("", selection: $store.selectedTab) {
+                Picker("", selection: $state.selectedTab) {
                     ForEach(ActionsTab.allCases, id: \.self) { Text($0.rawValue) }
                 }
                 .pickerStyle(.segmented)
@@ -27,4 +38,7 @@ struct ActionsView: View {
 #Preview {
     ActionsView()
         .environment(ActionStore())
+        .environment(ActionsViewState())
+        .environment(MyActionsViewState())
+        .environment(TemplatesViewState())
 }

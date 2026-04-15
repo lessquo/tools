@@ -1,19 +1,11 @@
 import Foundation
 
-enum ActionsTab: String, CaseIterable {
-    case myActions = "My Actions"
-    case templates = "Templates"
-}
-
 @Observable
 @MainActor
 final class ActionStore {
 
     private static let storageKey = "actions"
 
-    var selectedTab = ActionsTab.myActions
-    var selectedActionIDs: Set<UUID> = []
-    var selectedTemplateIDs: Set<UUID> = []
     private(set) var actions: [Action] = []
 
     init() {
@@ -31,15 +23,16 @@ final class ActionStore {
         save()
     }
 
-    func addFromTemplate(_ template: Action) {
+    @discardableResult
+    func addFromTemplate(_ template: Action) -> UUID {
         let copy = Action(id: UUID(), name: template.name, type: template.type, prompt: template.prompt, script: template.script)
         actions.append(copy)
         save()
-        selectedActionIDs = [copy.id]
-        selectedTab = .myActions
+        return copy.id
     }
 
-    func addFromTemplates(_ templates: [Action]) {
+    @discardableResult
+    func addFromTemplates(_ templates: [Action]) -> Set<UUID> {
         var newIDs: Set<UUID> = []
         for template in templates {
             let copy = Action(id: UUID(), name: template.name, type: template.type, prompt: template.prompt, script: template.script)
@@ -47,16 +40,16 @@ final class ActionStore {
             newIDs.insert(copy.id)
         }
         save()
-        selectedActionIDs = newIDs
-        selectedTab = .myActions
+        return newIDs
     }
 
-    func duplicate(_ action: Action) {
-        guard let index = actions.firstIndex(where: { $0.id == action.id }) else { return }
+    @discardableResult
+    func duplicate(_ action: Action) -> UUID? {
+        guard let index = actions.firstIndex(where: { $0.id == action.id }) else { return nil }
         let copy = Action(id: UUID(), name: action.name, type: action.type, prompt: action.prompt, script: action.script)
         actions.insert(copy, at: index + 1)
         save()
-        selectedActionIDs = [copy.id]
+        return copy.id
     }
 
     func delete(ids: Set<UUID>) {

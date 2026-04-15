@@ -1,6 +1,15 @@
 import HuggingFace
 import SwiftUI
 
+@Observable
+@MainActor
+final class LibraryViewState {
+    var searchText = ""
+    var filterTag = ""
+    var sortOption: ModelStore.SortOption = .downloads
+    var selection: HuggingFace.Model.ID?
+}
+
 struct LibraryView: View {
     @Environment(ModelStore.self) private var store
     @Environment(LibraryViewState.self) private var state

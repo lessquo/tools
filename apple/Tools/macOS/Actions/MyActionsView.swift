@@ -1,13 +1,20 @@
 import SwiftUI
 
+@Observable
+@MainActor
+final class MyActionsViewState {
+    var selectedActionIDs: Set<UUID> = []
+}
+
 struct MyActionsView: View {
     @Environment(ActionStore.self) private var store
+    @Environment(MyActionsViewState.self) private var state
     @State private var focusNewActionID: UUID?
 
     var body: some View {
-        @Bindable var store = store
+        @Bindable var state = state
         HSplitView {
-            List(selection: $store.selectedActionIDs) {
+            List(selection: $state.selectedActionIDs) {
                 ForEach(store.actions) { action in
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 4) {
@@ -24,14 +31,16 @@ struct MyActionsView: View {
                     .tag(action.id)
                     .padding(.vertical, 4)
                     .contextMenu {
-                        if store.selectedActionIDs.contains(action.id),
-                           store.selectedActionIDs.count > 1 {
-                            Button("Delete \(store.selectedActionIDs.count) Actions", role: .destructive) {
+                        if state.selectedActionIDs.contains(action.id),
+                           state.selectedActionIDs.count > 1 {
+                            Button("Delete \(state.selectedActionIDs.count) Actions", role: .destructive) {
                                 deleteSelected()
                             }
                         } else {
                             Button("Duplicate") {
-                                store.duplicate(action)
+                                if let newID = store.duplicate(action) {
+                                    state.selectedActionIDs = [newID]
+                                }
                             }
                             Button("Delete", role: .destructive) {
                                 delete(action)
@@ -46,9 +55,9 @@ struct MyActionsView: View {
                 deleteSelected()
             }
 
-            if store.selectedActionIDs.count > 1 {
+            if state.selectedActionIDs.count > 1 {
                 MultiSelectionView(
-                    actions: store.actions.filter { store.selectedActionIDs.contains($0.id) },
+                    actions: store.actions.filter { state.selectedActionIDs.contains($0.id) },
                     buttonLabel: "Delete Selected",
                     buttonIcon: "trash",
                     buttonRole: .destructive
@@ -56,7 +65,7 @@ struct MyActionsView: View {
                     deleteSelected()
                 }
                 .frame(minWidth: 300, maxWidth: .infinity)
-            } else if let selectedID = store.selectedActionIDs.first,
+            } else if let selectedID = state.selectedActionIDs.first,
                       let action = store.actions.first(where: { $0.id == selectedID }) {
                 ActionDetailView(action: action, focusName: focusNewActionID == selectedID)
                     .id(selectedID)
@@ -89,9 +98,9 @@ struct MyActionsView: View {
             }
         }
         .task {
-            if store.selectedActionIDs.isEmpty {
+            if state.selectedActionIDs.isEmpty {
                 if let firstID = store.actions.first?.id {
-                    store.selectedActionIDs = [firstID]
+                    state.selectedActionIDs = [firstID]
                 }
             }
         }
@@ -101,33 +110,33 @@ struct MyActionsView: View {
         let action = Action(id: UUID(), name: "", prompt: "")
         store.add(action)
         focusNewActionID = action.id
-        store.selectedActionIDs = [action.id]
+        state.selectedActionIDs = [action.id]
     }
 
     private func delete(_ action: Action) {
         guard let idx = store.actions.firstIndex(where: { $0.id == action.id }) else { return }
-        let wasSelected = store.selectedActionIDs.contains(action.id)
+        let wasSelected = state.selectedActionIDs.contains(action.id)
         store.delete(at: IndexSet(integer: idx))
         if wasSelected {
-            store.selectedActionIDs.remove(action.id)
-            if store.selectedActionIDs.isEmpty {
+            state.selectedActionIDs.remove(action.id)
+            if state.selectedActionIDs.isEmpty {
                 let newIndex = min(idx, store.actions.count - 1)
                 if newIndex >= 0 {
-                    store.selectedActionIDs = [store.actions[newIndex].id]
+                    state.selectedActionIDs = [store.actions[newIndex].id]
                 }
             }
         }
     }
 
     private func deleteSelected() {
-        guard !store.selectedActionIDs.isEmpty else { return }
-        let ids = store.selectedActionIDs
+        guard !state.selectedActionIDs.isEmpty else { return }
+        let ids = state.selectedActionIDs
         let firstIdx = store.actions.firstIndex { ids.contains($0.id) } ?? 0
         store.delete(ids: ids)
-        store.selectedActionIDs = []
+        state.selectedActionIDs = []
         if !store.actions.isEmpty {
             let newIndex = min(firstIdx, store.actions.count - 1)
-            store.selectedActionIDs = [store.actions[newIndex].id]
+            state.selectedActionIDs = [store.actions[newIndex].id]
         }
     }
 }

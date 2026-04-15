@@ -1,5 +1,16 @@
 import SwiftUI
 
+enum ModelsTab: String, CaseIterable {
+    case library = "Library"
+    case explore = "Explore"
+}
+
+@Observable
+@MainActor
+final class ModelsViewState {
+    var selectedTab = ModelsTab.library
+}
+
 struct ModelsView: View {
     @Environment(ModelsViewState.self) private var state
 

@@ -1,11 +1,6 @@
 import Foundation
 import HuggingFace
 
-enum ModelsTab: String, CaseIterable {
-    case library = "Library"
-    case explore = "Explore"
-}
-
 @Observable
 @MainActor
 final class ModelStore {

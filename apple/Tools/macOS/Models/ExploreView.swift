@@ -1,6 +1,15 @@
 import HuggingFace
 import SwiftUI
 
+@Observable
+@MainActor
+final class ExploreViewState {
+    var searchText = ""
+    var filterTag = ""
+    var sortOption: ModelStore.SortOption = .downloads
+    var selection: HuggingFace.Model.ID?
+}
+
 struct ExploreView: View {
     @Environment(ModelStore.self) private var store
     @Environment(ExploreViewState.self) private var state
