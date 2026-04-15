@@ -30,18 +30,24 @@ enum SidebarItem: String, CaseIterable {
     }
 }
 
+@Observable
+@MainActor
+final class MainViewState {
+    var sidebarItem: SidebarItem = .quickstart
+}
+
 struct MainView: View {
-    @Environment(NavigationState.self) private var navigation
+    @Environment(MainViewState.self) private var state
 
     var body: some View {
-        @Bindable var navigation = navigation
+        @Bindable var state = state
         NavigationSplitView {
-            List(SidebarItem.allCases, id: \.self, selection: $navigation.sidebarItem) { item in
+            List(SidebarItem.allCases, id: \.self, selection: $state.sidebarItem) { item in
                 Label(item.rawValue, systemImage: item.systemImage)
             }
             .navigationSplitViewColumnWidth(min: 140, ideal: 160, max: 200)
         } detail: {
-            switch navigation.sidebarItem {
+            switch state.sidebarItem {
             case .quickstart:
                 QuickstartView()
             case .actions:

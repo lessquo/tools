@@ -2,7 +2,7 @@ import AVFAudio
 import SwiftUI
 
 struct QuickstartView: View {
-    @Environment(NavigationState.self) private var navigation
+    @Environment(MainViewState.self) private var mainViewState
     @Environment(ModelStore.self) private var modelStore
     @Environment(ModelsViewState.self) private var modelsState
     @Environment(ExploreViewState.self) private var exploreState
@@ -100,7 +100,7 @@ struct QuickstartView: View {
     private func openExplore(filterTag: String) {
         exploreState.filterTag = filterTag
         modelsState.selectedTab = .explore
-        navigation.sidebarItem = .models
+        mainViewState.sidebarItem = .models
     }
 
     private func requestMicrophone() {
@@ -201,7 +201,7 @@ private extension View {
 
 #Preview {
     QuickstartView()
-        .environment(NavigationState())
+        .environment(MainViewState())
         .environment(ModelStore())
         .environment(ModelsViewState())
         .environment(ExploreViewState())

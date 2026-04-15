@@ -2,16 +2,16 @@ import AppKit
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
-    let navigationState = NavigationState()
-    let modelStore = ModelStore()
-    let modelsState = ModelsViewState()
-    let libraryState = LibraryViewState()
-    let exploreState = ExploreViewState()
+    let mainViewState = MainViewState()
     let aiService = AIService()
     let actionStore = ActionStore()
     let actionsState = ActionsViewState()
     let myActionsState = MyActionsViewState()
     let templatesState = TemplatesViewState()
+    let modelStore = ModelStore()
+    let modelsState = ModelsViewState()
+    let libraryState = LibraryViewState()
+    let exploreState = ExploreViewState()
     private let shortcutManager = ShortcutManager()
     private var panel: ActionPanel?
     private var dictationController: DictationController?

@@ -6,7 +6,7 @@ struct ToolsApp: App {
     var body: some Scene {
         Window("Tools", id: "main") {
             MainView()
-                .environment(appDelegate.navigationState)
+                .environment(appDelegate.mainViewState)
                 .environment(appDelegate.modelStore)
                 .environment(appDelegate.modelsState)
                 .environment(appDelegate.libraryState)
@@ -20,19 +20,19 @@ struct ToolsApp: App {
         .commands {
             CommandGroup(after: .toolbar) {
                 Button("Previous Sidebar Item") {
-                    appDelegate.navigationState.sidebarItem = appDelegate.navigationState.sidebarItem.previous
+                    appDelegate.mainViewState.sidebarItem = appDelegate.mainViewState.sidebarItem.previous
                 }
                 .keyboardShortcut(.upArrow, modifiers: [.command, .option])
 
                 Button("Next Sidebar Item") {
-                    appDelegate.navigationState.sidebarItem = appDelegate.navigationState.sidebarItem.next
+                    appDelegate.mainViewState.sidebarItem = appDelegate.mainViewState.sidebarItem.next
                 }
                 .keyboardShortcut(.downArrow, modifiers: [.command, .option])
 
                 Divider()
 
                 Button("Previous Tab") {
-                    switch appDelegate.navigationState.sidebarItem {
+                    switch appDelegate.mainViewState.sidebarItem {
                     case .actions:
                         appDelegate.actionsState.selectedTab = appDelegate.actionsState.selectedTab.previous
                     case .models:
@@ -44,7 +44,7 @@ struct ToolsApp: App {
                 .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
 
                 Button("Next Tab") {
-                    switch appDelegate.navigationState.sidebarItem {
+                    switch appDelegate.mainViewState.sidebarItem {
                     case .actions:
                         appDelegate.actionsState.selectedTab = appDelegate.actionsState.selectedTab.next
                     case .models:
