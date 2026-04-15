@@ -1,5 +1,6 @@
 import AppKit
 import AVFAudio
+import HuggingFace
 import SwiftUI
 
 struct QuickstartView: View {
@@ -47,77 +48,61 @@ struct QuickstartView: View {
                 description: "Hold the fn key anywhere to dictate. Release to paste the transcript.",
                 systemImage: "mic",
                 shortcut: "fn",
-                isEnabled: dictationEnabled,
-                requirements: [
-                    .init(
-                        id: "stt-model",
-                        label: "Speech-to-text model",
-                        isReady: hasSTTModel,
-                        actionLabel: "Install",
-                        readyActionLabel: "Browse",
-                        action: { openExplore(filterTag: "automatic-speech-recognition") }
-                    ),
-                    .init(
-                        id: "accessibility",
-                        label: "Accessibility access",
-                        detail: "Used to detect the fn key across apps.",
-                        isReady: accessibilityGranted,
-                        actionLabel: "Grant",
-                        readyActionLabel: "Settings",
-                        action: ClipboardService.requestAccessibilityPermission,
-                        readyAction: openAccessibilitySettings
-                    ),
-                    .init(
-                        id: "microphone",
-                        label: "Microphone access",
-                        detail: "Used to capture your voice for transcription.",
-                        isReady: microphoneGranted,
-                        actionLabel: "Grant",
-                        readyActionLabel: "Settings",
-                        action: requestMicrophone,
-                        readyAction: openMicrophoneSettings
-                    ),
-                ]
-            )
+                isEnabled: dictationEnabled
+            ) {
+                ModelPickerRow(
+                    feature: .dictation,
+                    label: "Speech-to-text model",
+                    openExplore: openExplore
+                )
+                RequirementRow(requirement: .init(
+                    id: "accessibility",
+                    label: "Accessibility access",
+                    detail: "Used to detect the fn key across apps.",
+                    isReady: accessibilityGranted,
+                    actionLabel: "Grant",
+                    readyActionLabel: "Settings",
+                    action: ClipboardService.requestAccessibilityPermission,
+                    readyAction: openAccessibilitySettings
+                ))
+                RequirementRow(requirement: .init(
+                    id: "microphone",
+                    label: "Microphone access",
+                    detail: "Used to capture your voice for transcription.",
+                    isReady: microphoneGranted,
+                    actionLabel: "Grant",
+                    readyActionLabel: "Settings",
+                    action: requestMicrophone,
+                    readyAction: openMicrophoneSettings
+                ))
+            }
             FeatureCard(
                 title: "Action Panel",
                 description: "Press ⌘; to run an action on selected text from any app.",
                 systemImage: "bolt",
                 shortcut: "⌘ ;",
-                isEnabled: actionPanelEnabled,
-                requirements: [
-                    .init(
-                        id: "chat-model",
-                        label: "Text-generation model",
-                        isReady: hasChatModel,
-                        actionLabel: "Install",
-                        readyActionLabel: "Browse",
-                        action: { openExplore(filterTag: "text-generation") }
-                    ),
-                    .init(
-                        id: "accessibility",
-                        label: "Accessibility access",
-                        detail: "Used to detect ⌘; across apps.",
-                        isReady: accessibilityGranted,
-                        actionLabel: "Grant",
-                        readyActionLabel: "Settings",
-                        action: ClipboardService.requestAccessibilityPermission,
-                        readyAction: openAccessibilitySettings
-                    ),
-                ]
-            )
+                isEnabled: actionPanelEnabled
+            ) {
+                ModelPickerRow(
+                    feature: .actionPanel,
+                    label: "Text-generation model",
+                    openExplore: openExplore
+                )
+                RequirementRow(requirement: .init(
+                    id: "accessibility",
+                    label: "Accessibility access",
+                    detail: "Used to detect ⌘; across apps.",
+                    isReady: accessibilityGranted,
+                    actionLabel: "Grant",
+                    readyActionLabel: "Settings",
+                    action: ClipboardService.requestAccessibilityPermission,
+                    readyAction: openAccessibilitySettings
+                ))
+            }
         }
     }
 
     // MARK: - Helpers
-
-    private var hasSTTModel: Bool {
-        modelStore.downloadedModels.contains { $0.pipelineTag == "automatic-speech-recognition" }
-    }
-
-    private var hasChatModel: Bool {
-        modelStore.downloadedModels.contains { $0.pipelineTag == "text-generation" }
-    }
 
     private func openExplore(filterTag: String) {
         exploreState.filterTag = filterTag
@@ -163,24 +148,13 @@ struct QuickstartView: View {
 
 // MARK: - Subviews
 
-private struct FeatureCard: View {
-    struct Requirement: Identifiable {
-        let id: String
-        let label: String
-        var detail: String? = nil
-        let isReady: Bool
-        let actionLabel: String
-        var readyActionLabel: String? = nil
-        let action: () -> Void
-        var readyAction: (() -> Void)? = nil
-    }
-
+private struct FeatureCard<Rows: View>: View {
     let title: String
     let description: String
     let systemImage: String
     let shortcut: String
     @Binding var isEnabled: Bool
-    let requirements: [Requirement]
+    @ViewBuilder let rows: () -> Rows
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
@@ -204,9 +178,7 @@ private struct FeatureCard: View {
                     .foregroundStyle(.secondary)
 
                 VStack(spacing: 6) {
-                    ForEach(requirements) { req in
-                        RequirementRow(requirement: req)
-                    }
+                    rows()
                 }
                 .padding(.top, 4)
             }
@@ -221,8 +193,19 @@ private struct FeatureCard: View {
     }
 }
 
+private struct Requirement: Identifiable {
+    let id: String
+    let label: String
+    var detail: String? = nil
+    let isReady: Bool
+    let actionLabel: String
+    var readyActionLabel: String? = nil
+    let action: () -> Void
+    var readyAction: (() -> Void)? = nil
+}
+
 private struct RequirementRow: View {
-    let requirement: FeatureCard.Requirement
+    let requirement: Requirement
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -245,6 +228,55 @@ private struct RequirementRow: View {
             } else if let readyLabel = requirement.readyActionLabel {
                 Button(readyLabel, action: requirement.readyAction ?? requirement.action)
                     .controlSize(.small)
+            }
+        }
+    }
+}
+
+private struct ModelPickerRow: View {
+    @Environment(ModelStore.self) private var store
+
+    let feature: ModelStore.Feature
+    let label: String
+    let openExplore: (String) -> Void
+
+    var body: some View {
+        let downloaded = store.downloadedModels(for: feature)
+        let selectedID = store.modelID(for: feature)
+        let selected = store.model(for: feature)
+        let isReady = store.isModelDownloaded(for: feature)
+
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: isReady ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .foregroundStyle(isReady ? .green : .orange)
+                .font(.footnote)
+            Text(label)
+                .font(.callout)
+            Spacer(minLength: 8)
+
+            if downloaded.isEmpty {
+                Button("Install") { openExplore(feature.pipelineTag) }
+                    .controlSize(.small)
+            } else {
+                Menu {
+                    ForEach(downloaded, id: \.id) { model in
+                        Button {
+                            store.setModelID(model.id.rawValue, for: feature)
+                        } label: {
+                            if model.id.rawValue == selectedID {
+                                Label(model.id.name, systemImage: "checkmark")
+                            } else {
+                                Text(model.id.name)
+                            }
+                        }
+                    }
+                    Divider()
+                    Button("Browse more…") { openExplore(feature.pipelineTag) }
+                } label: {
+                    Text(selected?.id.name ?? "Select model")
+                }
+                .fixedSize()
+                .controlSize(.small)
             }
         }
     }

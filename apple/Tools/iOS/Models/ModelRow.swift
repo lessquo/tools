@@ -51,9 +51,16 @@ struct ModelRow: View {
 
             Spacer()
 
-            if state == .downloaded, store.selectedModelID == modelID {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.tint)
+            if state == .downloaded {
+                let features = store.features(selecting: modelID)
+                if !features.isEmpty {
+                    HStack(spacing: 4) {
+                        ForEach(features, id: \.self) { feature in
+                            Image(systemName: feature.systemImage)
+                                .foregroundStyle(.tint)
+                        }
+                    }
+                }
             }
 
             switch state {
@@ -86,8 +93,9 @@ struct ModelRow: View {
         .padding(.vertical, 4)
         .contentShape(Rectangle())
         .onTapGesture {
-            if state == .downloaded {
-                store.selectedModelID = modelID
+            if state == .downloaded,
+               let feature = store.feature(matching: model.pipelineTag) {
+                store.setModelID(modelID, for: feature)
             }
         }
         .contextMenu {

@@ -27,6 +27,39 @@ final class ModelStore {
         case downloaded
     }
 
+    enum Feature: String, CaseIterable, Hashable {
+        case dictation
+        case actionPanel
+
+        var pipelineTag: String {
+            switch self {
+            case .dictation: "automatic-speech-recognition"
+            case .actionPanel: "text-generation"
+            }
+        }
+
+        var defaultsKey: String {
+            switch self {
+            case .dictation: "dictationModelID"
+            case .actionPanel: "actionPanelModelID"
+            }
+        }
+
+        var label: String {
+            switch self {
+            case .dictation: "Dictation"
+            case .actionPanel: "Action Panel"
+            }
+        }
+
+        var systemImage: String {
+            switch self {
+            case .dictation: "mic.fill"
+            case .actionPanel: "bolt.fill"
+            }
+        }
+    }
+
     // MARK: - State
 
     private(set) var models: [HuggingFace.Model] = []
@@ -40,8 +73,12 @@ final class ModelStore {
     private var downloadTasks: [String: Task<Void, Never>] = [:]
     private var scanFetchTask: Task<Void, Never>?
 
-    var selectedModelID: String {
-        didSet { UserDefaults.standard.set(selectedModelID, forKey: "selectedModelID") }
+    var dictationModelID: String {
+        didSet { UserDefaults.standard.set(dictationModelID, forKey: Feature.dictation.defaultsKey) }
+    }
+
+    var actionPanelModelID: String {
+        didSet { UserDefaults.standard.set(actionPanelModelID, forKey: Feature.actionPanel.defaultsKey) }
     }
 
     // MARK: - Private
@@ -63,7 +100,9 @@ final class ModelStore {
     init() {
         self.cache = Self.appCache
         self.client = HubClient(cache: cache)
-        self.selectedModelID = UserDefaults.standard.string(forKey: "selectedModelID") ?? ""
+        let defaults = UserDefaults.standard
+        self.dictationModelID = defaults.string(forKey: Feature.dictation.defaultsKey) ?? ""
+        self.actionPanelModelID = defaults.string(forKey: Feature.actionPanel.defaultsKey) ?? ""
         scanDownloadedModels()
         Task {
             async let models: Void = fetchModels()
@@ -146,8 +185,9 @@ final class ModelStore {
         downloadStates[modelID] = .downloaded
         refreshDownloadSize(for: model.id)
 
-        if !isSelectedModelDownloaded {
-            selectedModelID = modelID
+        if let feature = feature(matching: model.pipelineTag),
+           !isModelDownloaded(for: feature) {
+            setModelID(modelID, for: feature)
         }
 
         scanDownloadedModels()
@@ -182,10 +222,11 @@ final class ModelStore {
         resolvedPaths[modelID] = nil
         downloadStates[modelID] = .notDownloaded
         downloadedSizes[modelID] = nil
-        if selectedModelID == modelID {
-            selectedModelID = models.first(where: {
-                downloadStates[$0.id.rawValue] == .downloaded
+        for feature in features(selecting: modelID) {
+            let replacement = downloadedModels.first(where: {
+                $0.pipelineTag == feature.pipelineTag && $0.id.rawValue != modelID
             })?.id.rawValue ?? ""
+            setModelID(replacement, for: feature)
         }
 
         scanDownloadedModels()
@@ -201,12 +242,44 @@ final class ModelStore {
 
     var cacheDirectory: URL { cache.cacheDirectory }
 
-    var selectedModel: HuggingFace.Model? {
-        models.first { $0.id.rawValue == selectedModelID }
+    func modelID(for feature: Feature) -> String {
+        switch feature {
+        case .dictation: dictationModelID
+        case .actionPanel: actionPanelModelID
+        }
     }
 
-    var isSelectedModelDownloaded: Bool {
-        downloadStates[selectedModelID] == .downloaded
+    func setModelID(_ id: String, for feature: Feature) {
+        switch feature {
+        case .dictation: dictationModelID = id
+        case .actionPanel: actionPanelModelID = id
+        }
+    }
+
+    func model(for feature: Feature) -> HuggingFace.Model? {
+        let id = modelID(for: feature)
+        guard !id.isEmpty else { return nil }
+        return downloadedModels.first { $0.id.rawValue == id }
+            ?? models.first { $0.id.rawValue == id }
+    }
+
+    func isModelDownloaded(for feature: Feature) -> Bool {
+        let id = modelID(for: feature)
+        return !id.isEmpty && downloadStates[id] == .downloaded
+    }
+
+    func features(selecting modelID: String) -> [Feature] {
+        guard !modelID.isEmpty else { return [] }
+        return Feature.allCases.filter { self.modelID(for: $0) == modelID }
+    }
+
+    func feature(matching pipelineTag: String?) -> Feature? {
+        guard let tag = pipelineTag else { return nil }
+        return Feature.allCases.first { $0.pipelineTag == tag }
+    }
+
+    func downloadedModels(for feature: Feature) -> [HuggingFace.Model] {
+        downloadedModels.filter { $0.pipelineTag == feature.pipelineTag }
     }
 
     func scanDownloadedModels() {

@@ -38,7 +38,7 @@ final class DictationController {
 
     private func beginDictation() {
         guard beginTask == nil else { return }
-        let id = modelStore.selectedModelID
+        let id = modelStore.modelID(for: .dictation)
         guard !id.isEmpty else { return }
         let directory = modelStore.modelDirectory(for: id)
 

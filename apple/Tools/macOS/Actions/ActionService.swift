@@ -122,14 +122,14 @@ final class ActionService {
     }
 
     private func processLLMAction(_ action: Action, text: String) async {
-        guard modelStore.isSelectedModelDownloaded else {
+        guard modelStore.isModelDownloaded(for: .actionPanel) else {
             status = .error("No model downloaded")
             return
         }
 
         status = .processing(original: text, result: "")
 
-        let modelID = modelStore.selectedModelID
+        let modelID = modelStore.modelID(for: .actionPanel)
         let modelDir = modelStore.modelDirectory(for: modelID)
 
         do {

@@ -50,9 +50,17 @@ struct ModelRow: View {
 
             Spacer()
 
-            if state == .downloaded, store.selectedModelID == modelID {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.tint)
+            if state == .downloaded {
+                let features = store.features(selecting: modelID)
+                if !features.isEmpty {
+                    HStack(spacing: 4) {
+                        ForEach(features, id: \.self) { feature in
+                            Image(systemName: feature.systemImage)
+                                .foregroundStyle(.tint)
+                                .help("Selected for \(feature.label)")
+                        }
+                    }
+                }
             }
 
             switch state {
@@ -95,9 +103,10 @@ struct ModelRow: View {
                     store.cancelDownload(model)
                 }
             case .downloaded:
-                if store.selectedModelID != modelID {
-                    Button("Select") {
-                        store.selectedModelID = modelID
+                if let feature = store.feature(matching: model.pipelineTag),
+                   store.modelID(for: feature) != modelID {
+                    Button("Select for \(feature.label)") {
+                        store.setModelID(modelID, for: feature)
                     }
                 }
                 Button("Delete", role: .destructive) {
