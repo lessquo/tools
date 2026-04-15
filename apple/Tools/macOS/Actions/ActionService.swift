@@ -8,23 +8,16 @@ struct Action: Codable, Identifiable, Equatable {
         case script
     }
 
-    enum ApplyMode: String, Codable, CaseIterable {
-        case replace
-        case append
-    }
-
     var id: UUID
     var name: String
     var type: ActionType
-    var applyMode: ApplyMode
     var prompt: String
     var script: String
 
-    init(id: UUID, name: String, type: ActionType = .llm, applyMode: ApplyMode = .replace, prompt: String = "", script: String = "") {
+    init(id: UUID, name: String, type: ActionType = .llm, prompt: String = "", script: String = "") {
         self.id = id
         self.name = name
         self.type = type
-        self.applyMode = applyMode
         self.prompt = prompt
         self.script = script
     }
@@ -34,7 +27,6 @@ struct Action: Codable, Identifiable, Equatable {
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         type = try container.decodeIfPresent(ActionType.self, forKey: .type) ?? .llm
-        applyMode = try container.decodeIfPresent(ApplyMode.self, forKey: .applyMode) ?? .replace
         prompt = try container.decodeIfPresent(String.self, forKey: .prompt) ?? ""
         script = try container.decodeIfPresent(String.self, forKey: .script) ?? ""
     }
@@ -42,7 +34,7 @@ struct Action: Codable, Identifiable, Equatable {
 
     static let defaultNames: Set<String> = ["Fix grammar", "Summarize", "Translate to English", "Sort lines", "Count characters"]
     static let defaults: [Action] = templates.filter { defaultNames.contains($0.name) }.map {
-        Action(id: UUID(), name: $0.name, type: $0.type, applyMode: $0.applyMode, prompt: $0.prompt, script: $0.script)
+        Action(id: UUID(), name: $0.name, type: $0.type, prompt: $0.prompt, script: $0.script)
     }
 
     static let templates: [Action] = [
@@ -81,7 +73,6 @@ final class ActionService {
     private(set) var status: Status = .idle
     var editedResult = ""
     var selectedActionIndex = 0
-    private(set) var currentApplyMode: Action.ApplyMode = .replace
 
     private let clipboard = ClipboardService()
     private let ai: AIService
@@ -122,7 +113,6 @@ final class ActionService {
     }
 
     func processAction(_ action: Action, text: String) async {
-        currentApplyMode = action.applyMode
         switch action.type {
         case .llm:
             await processLLMAction(action, text: text)
@@ -223,10 +213,6 @@ final class ActionService {
         clipboard.write(editedResult)
 
         do {
-            if currentApplyMode == .append {
-                try clipboard.simulateRightArrow()
-                try await Task.sleep(for: .milliseconds(100))
-            }
             try await clipboard.simulatePaste()
             try await Task.sleep(for: .milliseconds(200))
             clipboard.restore(savedClipboard)

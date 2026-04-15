@@ -34,10 +34,6 @@ final class ClipboardService {
         try simulateKeyPress(keyCode: UInt16(kVK_ANSI_V), flags: .maskCommand)
     }
 
-    func simulateRightArrow() throws {
-        try simulateKeyPress(keyCode: UInt16(kVK_RightArrow), flags: [])
-    }
-
     // MARK: - Private
 
     private func simulateKeyPress(keyCode: UInt16, flags: CGEventFlags) throws {

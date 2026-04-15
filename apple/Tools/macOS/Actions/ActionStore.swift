@@ -32,7 +32,7 @@ final class ActionStore {
     }
 
     func addFromTemplate(_ template: Action) {
-        let copy = Action(id: UUID(), name: template.name, type: template.type, applyMode: template.applyMode, prompt: template.prompt, script: template.script)
+        let copy = Action(id: UUID(), name: template.name, type: template.type, prompt: template.prompt, script: template.script)
         actions.append(copy)
         save()
         selectedActionIDs = [copy.id]
@@ -42,7 +42,7 @@ final class ActionStore {
     func addFromTemplates(_ templates: [Action]) {
         var newIDs: Set<UUID> = []
         for template in templates {
-            let copy = Action(id: UUID(), name: template.name, type: template.type, applyMode: template.applyMode, prompt: template.prompt, script: template.script)
+            let copy = Action(id: UUID(), name: template.name, type: template.type, prompt: template.prompt, script: template.script)
             actions.append(copy)
             newIDs.insert(copy.id)
         }
