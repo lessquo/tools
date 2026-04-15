@@ -39,6 +39,7 @@ final class ModelStore {
     private(set) var pipelineTags: [PipelineTag] = []
     private(set) var isFetching = false
     var downloadStates: [String: DownloadState] = [:]
+    var downloadedSizes: [String: Int64] = [:]
     var downloadError: String?
     private var resolvedPaths: [String: URL] = [:]
     private var downloadTasks: [String: Task<Void, Never>] = [:]
@@ -147,6 +148,7 @@ final class ModelStore {
 
         resolvedPaths[modelID] = path
         downloadStates[modelID] = .downloaded
+        refreshDownloadSize(for: model.id)
 
         if !isSelectedModelDownloaded {
             selectedModelID = modelID
@@ -163,6 +165,7 @@ final class ModelStore {
         }
         resolvedPaths[modelID] = nil
         downloadStates[modelID] = .notDownloaded
+        downloadedSizes[modelID] = nil
         if selectedModelID == modelID {
             selectedModelID = models.first(where: {
                 downloadStates[$0.id.rawValue] == .downloaded
@@ -214,6 +217,9 @@ final class ModelStore {
 
             resolvedPaths[repoString] = cached.deletingLastPathComponent()
             downloadStates[repoString] = .downloaded
+            if downloadedSizes[repoString] == nil {
+                refreshDownloadSize(for: repoID)
+            }
 
             if let apiModel = models.first(where: { $0.id.rawValue == repoString }) {
                 found.append(apiModel)
@@ -235,6 +241,34 @@ final class ModelStore {
         }
     }
 
+    func refreshDownloadSize(for repoID: Repo.ID) {
+        let modelID = repoID.rawValue
+        let dir = cache.repoDirectory(repo: repoID, kind: .model)
+        Task.detached(priority: .utility) { [weak self] in
+            let size = Self.directorySize(at: dir)
+            await MainActor.run { [weak self] in
+                self?.downloadedSizes[modelID] = size
+            }
+        }
+    }
+
+    private nonisolated static func directorySize(at url: URL) -> Int64 {
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: url.path) else { return 0 }
+        guard let enumerator = fm.enumerator(atPath: url.path) else { return 0 }
+        var total: Int64 = 0
+        while let relative = enumerator.nextObject() as? String {
+            let path = url.appendingPathComponent(relative).path
+            guard let attrs = try? fm.attributesOfItem(atPath: path),
+                  let type = attrs[.type] as? FileAttributeType,
+                  type == .typeRegular,
+                  let size = attrs[.size] as? NSNumber
+            else { continue }
+            total += size.int64Value
+        }
+        return total
+    }
+
     func refreshDownloadStates() {
         for model in models {
             let modelID = model.id.rawValue
@@ -244,9 +278,13 @@ final class ModelStore {
             ) {
                 downloadStates[modelID] = .downloaded
                 resolvedPaths[modelID] = cached.deletingLastPathComponent()
+                if downloadedSizes[modelID] == nil {
+                    refreshDownloadSize(for: model.id)
+                }
             } else {
                 downloadStates[modelID] = .notDownloaded
                 resolvedPaths[modelID] = nil
+                downloadedSizes[modelID] = nil
             }
         }
     }

@@ -76,20 +76,11 @@ struct ModelRow: View {
                 .buttonStyle(.borderless)
 
             case .downloaded:
-                Menu {
-                    if store.selectedModelID != modelID {
-                        Button("Select") {
-                            store.selectedModelID = modelID
-                        }
-                    }
-                    Button("Delete", role: .destructive) {
-                        try? store.deleteDownload(model)
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
+                if let bytes = store.downloadedSizes[modelID] {
+                    Text(bytes.formatted(.byteCount(style: .file)))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
             }
         }
         .padding(.vertical, 4)
