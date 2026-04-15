@@ -4,7 +4,6 @@ import SwiftUI
 struct LibraryView: View {
     @Environment(ModelStore.self) private var store
     @Environment(LibraryViewState.self) private var state
-    @State private var selection: HuggingFace.Model.ID?
 
     var downloadedTags: [PipelineTag] {
         let ids = Set(store.downloadedModels.compactMap(\.pipelineTag))
@@ -31,51 +30,58 @@ struct LibraryView: View {
                     description: Text("Download models from the Explore tab")
                 )
             } else {
-                List(selection: $selection) {
-                    HStack {
-                        if downloadedTags.count >= 2 {
-                            Picker("Task", selection: $state.filterTag) {
-                                Text("All Tasks").tag("")
-                                ForEach(downloadedTags) { entry in
-                                    Text(entry.label).tag(entry.id)
+                ScrollViewReader { proxy in
+                    List(selection: $state.selection) {
+                        HStack {
+                            if downloadedTags.count >= 2 {
+                                Picker("Task", selection: $state.filterTag) {
+                                    Text("All Tasks").tag("")
+                                    ForEach(downloadedTags) { entry in
+                                        Text(entry.label).tag(entry.id)
+                                    }
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                                .fixedSize()
+                                if !state.filterTag.isEmpty {
+                                    Button {
+                                        state.filterTag = ""
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                    }
+                                    .buttonStyle(.plain)
+                                    .foregroundStyle(.secondary)
                                 }
                             }
-                            .labelsHidden()
+                            Spacer()
+                            Picker(selection: $state.sortOption) {
+                                ForEach(ModelStore.SortOption.allCases, id: \.self) {
+                                    Text($0.rawValue)
+                                }
+                            } label: {
+                                Image(systemName: "arrow.up.arrow.down")
+                            }
                             .pickerStyle(.menu)
                             .fixedSize()
-                            if !state.filterTag.isEmpty {
-                                Button {
-                                    state.filterTag = ""
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                }
-                                .buttonStyle(.plain)
-                                .foregroundStyle(.secondary)
-                            }
                         }
-                        Spacer()
-                        Picker(selection: $state.sortOption) {
-                            ForEach(ModelStore.SortOption.allCases, id: \.self) {
-                                Text($0.rawValue)
-                            }
-                        } label: {
-                            Image(systemName: "arrow.up.arrow.down")
+                        .listRowSeparator(.hidden)
+                        ForEach(filteredModels, id: \.id) { model in
+                            ModelRow(model: model, onTagTap: { state.filterTag = $0 })
                         }
-                        .pickerStyle(.menu)
-                        .fixedSize()
                     }
-                    .listRowSeparator(.hidden)
-                    ForEach(filteredModels, id: \.id) { model in
-                        ModelRow(model: model, onTagTap: { state.filterTag = $0 })
+                    .overlay {
+                        if filteredModels.isEmpty {
+                            ContentUnavailableView(
+                                "No Results",
+                                systemImage: "magnifyingglass",
+                                description: Text("Try adjusting your search or filters")
+                            )
+                        }
                     }
-                }
-                .overlay {
-                    if filteredModels.isEmpty {
-                        ContentUnavailableView(
-                            "No Results",
-                            systemImage: "magnifyingglass",
-                            description: Text("Try adjusting your search or filters")
-                        )
+                    .onAppear {
+                        if let id = state.selection {
+                            proxy.scrollTo(id, anchor: .center)
+                        }
                     }
                 }
             }
