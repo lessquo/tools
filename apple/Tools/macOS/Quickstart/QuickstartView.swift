@@ -63,7 +63,9 @@ struct QuickstartView: View {
                         detail: "Used to detect the fn key across apps.",
                         isReady: accessibilityGranted,
                         actionLabel: "Grant",
-                        action: ClipboardService.requestAccessibilityPermission
+                        readyActionLabel: "Settings",
+                        action: ClipboardService.requestAccessibilityPermission,
+                        readyAction: openAccessibilitySettings
                     ),
                     .init(
                         id: "microphone",
@@ -71,7 +73,9 @@ struct QuickstartView: View {
                         detail: "Used to capture your voice for transcription.",
                         isReady: microphoneGranted,
                         actionLabel: "Grant",
-                        action: requestMicrophone
+                        readyActionLabel: "Settings",
+                        action: requestMicrophone,
+                        readyAction: openMicrophoneSettings
                     ),
                 ]
             )
@@ -96,7 +100,9 @@ struct QuickstartView: View {
                         detail: "Used to detect ⌘; across apps.",
                         isReady: accessibilityGranted,
                         actionLabel: "Grant",
-                        action: ClipboardService.requestAccessibilityPermission
+                        readyActionLabel: "Settings",
+                        action: ClipboardService.requestAccessibilityPermission,
+                        readyAction: openAccessibilitySettings
                     ),
                 ]
             )
@@ -129,13 +135,23 @@ struct QuickstartView: View {
                 refreshPermissions()
             }
         case .denied:
-            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
-                NSWorkspace.shared.open(url)
-            }
+            openMicrophoneSettings()
         case .granted:
             break
         @unknown default:
             break
+        }
+    }
+
+    private func openAccessibilitySettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    private func openMicrophoneSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+            NSWorkspace.shared.open(url)
         }
     }
 
@@ -156,6 +172,7 @@ private struct FeatureCard: View {
         let actionLabel: String
         var readyActionLabel: String? = nil
         let action: () -> Void
+        var readyAction: (() -> Void)? = nil
     }
 
     let title: String
@@ -226,7 +243,7 @@ private struct RequirementRow: View {
                 Button(requirement.actionLabel, action: requirement.action)
                     .controlSize(.small)
             } else if let readyLabel = requirement.readyActionLabel {
-                Button(readyLabel, action: requirement.action)
+                Button(readyLabel, action: requirement.readyAction ?? requirement.action)
                     .controlSize(.small)
             }
         }
