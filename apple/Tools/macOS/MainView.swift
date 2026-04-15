@@ -15,12 +15,14 @@ extension CaseIterable where Self: Equatable {
 }
 
 enum SidebarItem: String, CaseIterable {
+    case quickstart = "Quickstart"
     case actions = "Actions"
     case models = "Models"
     case shortcuts = "Shortcuts"
 
     var systemImage: String {
         switch self {
+        case .quickstart: "sparkles"
         case .actions: "bolt"
         case .models: "cube"
         case .shortcuts: "command"
@@ -40,6 +42,8 @@ struct MainView: View {
             .navigationSplitViewColumnWidth(min: 140, ideal: 160, max: 200)
         } detail: {
             switch navigation.sidebarItem {
+            case .quickstart:
+                QuickstartView()
             case .actions:
                 ActionsView()
             case .models:

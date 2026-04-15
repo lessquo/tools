@@ -3,5 +3,5 @@ import Foundation
 @Observable
 @MainActor
 final class NavigationState {
-    var sidebarItem: SidebarItem = .actions
+    var sidebarItem: SidebarItem = .quickstart
 }
