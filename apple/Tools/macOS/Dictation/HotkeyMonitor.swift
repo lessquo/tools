@@ -17,7 +17,6 @@ final class HotkeyMonitor {
     func start() {
         guard eventTap == nil else { return }
         guard ClipboardService.checkAccessibilityPermission() else {
-            ClipboardService.requestAccessibilityPermission()
             startPolling()
             return
         }
