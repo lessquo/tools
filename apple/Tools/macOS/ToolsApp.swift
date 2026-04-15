@@ -6,15 +6,16 @@ struct ToolsApp: App {
     var body: some Scene {
         Window("Tools", id: "main") {
             MainView()
+                .environment(appDelegate.featuresState)
                 .environment(appDelegate.mainViewState)
-                .environment(appDelegate.modelStore)
-                .environment(appDelegate.modelsState)
-                .environment(appDelegate.libraryState)
-                .environment(appDelegate.exploreState)
                 .environment(appDelegate.actionStore)
                 .environment(appDelegate.actionsState)
                 .environment(appDelegate.myActionsState)
                 .environment(appDelegate.templatesState)
+                .environment(appDelegate.modelStore)
+                .environment(appDelegate.modelsState)
+                .environment(appDelegate.libraryState)
+                .environment(appDelegate.exploreState)
         }
         .defaultSize(width: 1200, height: 700)
         .commands {

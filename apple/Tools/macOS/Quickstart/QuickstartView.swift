@@ -7,14 +7,19 @@ struct QuickstartView: View {
     @Environment(ModelStore.self) private var modelStore
     @Environment(ModelsViewState.self) private var modelsState
     @Environment(ExploreViewState.self) private var exploreState
+    @Environment(FeaturesState.self) private var featuresState
 
     @State private var accessibilityGranted = ClipboardService.checkAccessibilityPermission()
     @State private var microphoneGranted = AVAudioApplication.shared.recordPermission == .granted
 
     var body: some View {
+        @Bindable var featuresState = featuresState
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                featuresSection
+                featuresSection(
+                    dictationEnabled: $featuresState.dictationEnabled,
+                    actionPanelEnabled: $featuresState.actionPanelEnabled
+                )
             }
             .padding(28)
             .frame(maxWidth: 760, alignment: .leading)
@@ -32,13 +37,17 @@ struct QuickstartView: View {
 
     // MARK: - Sections
 
-    private var featuresSection: some View {
+    private func featuresSection(
+        dictationEnabled: Binding<Bool>,
+        actionPanelEnabled: Binding<Bool>
+    ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             FeatureCard(
                 title: "Dictation",
                 description: "Hold the fn key anywhere to dictate. Release to paste the transcript.",
                 systemImage: "mic",
                 shortcut: "fn",
+                isEnabled: dictationEnabled,
                 requirements: [
                     .init(
                         id: "stt-model",
@@ -71,6 +80,7 @@ struct QuickstartView: View {
                 description: "Press ⌘; to run an action on selected text from any app.",
                 systemImage: "bolt",
                 shortcut: "⌘ ;",
+                isEnabled: actionPanelEnabled,
                 requirements: [
                     .init(
                         id: "chat-model",
@@ -152,6 +162,7 @@ private struct FeatureCard: View {
     let description: String
     let systemImage: String
     let shortcut: String
+    @Binding var isEnabled: Bool
     let requirements: [Requirement]
 
     var body: some View {
@@ -183,6 +194,10 @@ private struct FeatureCard: View {
                 .padding(.top, 4)
             }
             Spacer(minLength: 0)
+            Toggle("", isOn: $isEnabled)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
         }
         .padding(16)
         .cardBackground()
@@ -232,6 +247,7 @@ private extension View {
 
 #Preview {
     QuickstartView()
+        .environment(FeaturesState())
         .environment(MainViewState())
         .environment(ModelStore())
         .environment(ModelsViewState())
