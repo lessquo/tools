@@ -117,7 +117,8 @@ final class AudioCaptureService {
         var sumSquares: Float = 0
         for sample in samples { sumSquares += sample * sample }
         let rms = sqrt(sumSquares / Float(frames))
-        level = min(1, rms * 4)  // cheap visual scaling
+        // Perceptual curve: sqrt boosts small values so quiet speech visibly moves the meter.
+        level = sqrt(min(1, rms * 8))
 
         buffer.append(contentsOf: samples)
     }
