@@ -43,6 +43,7 @@ final class ModelStore {
     var downloadError: String?
     private var resolvedPaths: [String: URL] = [:]
     private var downloadTasks: [String: Task<Void, Never>] = [:]
+    private var scanFetchTask: Task<Void, Never>?
 
     var selectedModelID: String {
         didSet { UserDefaults.standard.set(selectedModelID, forKey: "selectedModelID") }
@@ -250,13 +251,23 @@ final class ModelStore {
 
         downloadedModels = found
 
-        if !idsToFetch.isEmpty {
-            Task {
-                for repoID in idsToFetch {
-                    if let model = try? await client.getModel(repoID) {
-                        downloadedModels.append(model)
-                    }
-                }
+        scanFetchTask?.cancel()
+        guard !idsToFetch.isEmpty else {
+            scanFetchTask = nil
+            return
+        }
+        scanFetchTask = Task { [weak self] in
+            for repoID in idsToFetch {
+                if Task.isCancelled { return }
+                guard let client = self?.client,
+                      let model = try? await client.getModel(repoID)
+                else { continue }
+                if Task.isCancelled { return }
+                guard let self,
+                      self.downloadStates[repoID.rawValue] == .downloaded,
+                      !self.downloadedModels.contains(where: { $0.id == model.id })
+                else { continue }
+                self.downloadedModels.append(model)
             }
         }
     }
