@@ -44,23 +44,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let libraryState = LibraryViewState()
     let exploreState = ExploreViewState()
     let featuresState = FeaturesState()
-    private let shortcutManager = ShortcutManager()
+    private let shortcutMonitor = ShortcutMonitor()
     private var panel: ActionPanel?
     private var dictationController: DictationController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let p = ActionPanel(llmService: llmService, modelStore: modelStore, actionStore: actionStore)
         panel = p
-        shortcutManager.onActivate = { [weak p] in
+        shortcutMonitor.onActivate = { [weak p] in
             p?.toggle()
         }
         dictationController = DictationController(modelStore: modelStore)
 
         featuresState.onActionPanelChange = { [weak self] enabled in
             if enabled {
-                self?.shortcutManager.start()
+                self?.shortcutMonitor.start()
             } else {
-                self?.shortcutManager.stop()
+                self?.shortcutMonitor.stop()
             }
         }
         featuresState.onDictationChange = { [weak self] enabled in
@@ -74,7 +74,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let startActionPanel = featuresState.actionPanelEnabled
         let startDictation = featuresState.dictationEnabled
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            if startActionPanel { self?.shortcutManager.start() }
+            if startActionPanel { self?.shortcutMonitor.start() }
             if startDictation { self?.dictationController?.start() }
         }
     }

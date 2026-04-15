@@ -3,7 +3,7 @@ import Foundation
 import Carbon.HIToolbox
 
 @MainActor
-final class ShortcutManager {
+final class ShortcutMonitor {
 
     var onActivate: (() -> Void)?
 
@@ -101,9 +101,9 @@ private func shortcutCallback(
        !flags.contains(.maskShift),
        !flags.contains(.maskAlternate),
        !flags.contains(.maskControl) {
-        let manager = Unmanaged<ShortcutManager>.fromOpaque(userInfo).takeUnretainedValue()
+        let monitor = Unmanaged<ShortcutMonitor>.fromOpaque(userInfo).takeUnretainedValue()
         DispatchQueue.main.async {
-            manager.onActivate?()
+            monitor.onActivate?()
         }
         return nil // swallow the event
     }

@@ -2,9 +2,9 @@ import Foundation
 @preconcurrency import ApplicationServices
 
 /// Watches the `fn` (globe) key globally and fires press/release callbacks.
-/// Requires the Accessibility permission (same as `ShortcutManager`).
+/// Requires the Accessibility permission (same as `ShortcutMonitor`).
 @MainActor
-final class HotkeyMonitor {
+final class HoldShortcutMonitor {
 
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?
@@ -68,7 +68,7 @@ final class HotkeyMonitor {
             place: .headInsertEventTap,
             options: .listenOnly,
             eventsOfInterest: mask,
-            callback: hotkeyCallback,
+            callback: holdShortcutCallback,
             userInfo: userInfo
         ) else { return }
 
@@ -99,7 +99,7 @@ final class HotkeyMonitor {
     }
 }
 
-private func hotkeyCallback(
+private func holdShortcutCallback(
     proxy: CGEventTapProxy,
     type: CGEventType,
     event: CGEvent,
@@ -109,7 +109,7 @@ private func hotkeyCallback(
         return Unmanaged.passUnretained(event)
     }
     let flags = event.flags
-    let monitor = Unmanaged<HotkeyMonitor>.fromOpaque(userInfo).takeUnretainedValue()
+    let monitor = Unmanaged<HoldShortcutMonitor>.fromOpaque(userInfo).takeUnretainedValue()
     DispatchQueue.main.async {
         monitor.handleFlagsChanged(flags)
     }

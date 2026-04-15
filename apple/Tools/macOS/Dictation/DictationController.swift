@@ -9,7 +9,7 @@ final class DictationController {
     private let modelStore: ModelStore
     private let audio = AudioCaptureService()
     private let stt = STTService()
-    private let hotkey = HotkeyMonitor()
+    private let shortcut = HoldShortcutMonitor()
     private let clipboard = ClipboardService()
     private let panel: DictationPanel
 
@@ -19,16 +19,16 @@ final class DictationController {
         self.modelStore = modelStore
         self.panel = DictationPanel(audio: audio, stt: stt)
 
-        hotkey.onPress = { [weak self] in self?.beginDictation() }
-        hotkey.onRelease = { [weak self] in self?.endDictation() }
+        shortcut.onPress = { [weak self] in self?.beginDictation() }
+        shortcut.onRelease = { [weak self] in self?.endDictation() }
     }
 
     func start() {
-        hotkey.start()
+        shortcut.start()
     }
 
     func stop() {
-        hotkey.stop()
+        shortcut.stop()
         beginTask?.cancel()
         _ = audio.stop()
         panel.close()
