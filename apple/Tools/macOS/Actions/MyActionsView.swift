@@ -30,6 +30,9 @@ struct MyActionsView: View {
                                 deleteSelected()
                             }
                         } else {
+                            Button("Duplicate") {
+                                store.duplicate(action)
+                            }
                             Button("Delete", role: .destructive) {
                                 delete(action)
                             }

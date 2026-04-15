@@ -51,6 +51,14 @@ final class ActionStore {
         selectedTab = .myActions
     }
 
+    func duplicate(_ action: Action) {
+        guard let index = actions.firstIndex(where: { $0.id == action.id }) else { return }
+        let copy = Action(id: UUID(), name: action.name, type: action.type, prompt: action.prompt, script: action.script)
+        actions.insert(copy, at: index + 1)
+        save()
+        selectedActionIDs = [copy.id]
+    }
+
     func delete(ids: Set<UUID>) {
         actions.removeAll { ids.contains($0.id) }
         save()
