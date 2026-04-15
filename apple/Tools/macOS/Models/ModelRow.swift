@@ -1,3 +1,4 @@
+import AppKit
 import HuggingFace
 import SwiftUI
 
@@ -104,6 +105,11 @@ struct ModelRow: View {
                 }
             }
             Divider()
+            Button("Copy Name") {
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(modelID, forType: .string)
+            }
             Link("View on Hugging Face", destination: URL(string: "https://huggingface.co/\(modelID)")!)
         }
     }

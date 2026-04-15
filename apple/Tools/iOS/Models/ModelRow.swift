@@ -90,5 +90,10 @@ struct ModelRow: View {
                 store.selectedModelID = modelID
             }
         }
+        .contextMenu {
+            Button("Copy Name") {
+                UIPasteboard.general.string = modelID
+            }
+        }
     }
 }
