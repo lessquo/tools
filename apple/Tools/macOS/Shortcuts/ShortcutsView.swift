@@ -24,6 +24,7 @@ struct ShortcutsView: View {
     var body: some View {
         List {
             Section("Global") {
+                ShortcutRow("Hold to Dictate", keys: "fn")
                 ShortcutRow("Activate Action Panel", keys: "⌘ ;")
             }
             Section("Navigation") {
