@@ -76,13 +76,13 @@ final class ActionService {
     var selectedActionIndex = 0
 
     private let clipboard = ClipboardService()
-    private let ai: AIService
+    private let llm: LLMService
     private let modelStore: ModelStore
     private var savedClipboard: String?
     private var currentTask: Task<Void, Never>?
 
-    init(ai: AIService, modelStore: ModelStore) {
-        self.ai = ai
+    init(llm: LLMService, modelStore: ModelStore) {
+        self.llm = llm
         self.modelStore = modelStore
     }
 
@@ -134,10 +134,10 @@ final class ActionService {
         let modelDir = modelStore.modelDirectory(for: modelID)
 
         do {
-            try await ai.loadModel(id: modelID, directory: modelDir)
+            try await llm.loadModel(id: modelID, directory: modelDir)
 
             var result = ""
-            let stream = ai.generateStream(prompt: action.prompt.replacingOccurrences(of: "{{input}}", with: text))
+            let stream = llm.generateStream(prompt: action.prompt.replacingOccurrences(of: "{{input}}", with: text))
             for try await chunk in stream {
                 result += chunk
                 status = .processing(original: text, result: result)

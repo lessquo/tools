@@ -14,14 +14,14 @@ final class ActionPanel {
     private var globalEventMonitor: Any?
     private var localEventMonitor: Any?
 
-    private let aiService: AIService
+    private let llmService: LLMService
     private let modelStore: ModelStore
     private let actionStore: ActionStore
     private let menuHandler = ActionMenuHandler()
     private var panelOrigin: CGPoint = .zero
 
-    init(aiService: AIService, modelStore: ModelStore, actionStore: ActionStore) {
-        self.aiService = aiService
+    init(llmService: LLMService, modelStore: ModelStore, actionStore: ActionStore) {
+        self.llmService = llmService
         self.modelStore = modelStore
         self.actionStore = actionStore
         menuHandler.onPick = { [weak self] action in
@@ -69,7 +69,7 @@ final class ActionPanel {
     }
 
     private func presentPanel() {
-        let service = ActionService(ai: aiService, modelStore: modelStore)
+        let service = ActionService(llm: llmService, modelStore: modelStore)
         self.service = service
 
         let view = ActionPanelView(

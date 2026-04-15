@@ -34,7 +34,7 @@ final class FeaturesState {
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     let mainViewState = MainViewState()
-    let aiService = AIService()
+    let llmService = LLMService()
     let actionStore = ActionStore()
     let actionsState = ActionsViewState()
     let myActionsState = MyActionsViewState()
@@ -49,7 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var dictationController: DictationController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let p = ActionPanel(aiService: aiService, modelStore: modelStore, actionStore: actionStore)
+        let p = ActionPanel(llmService: llmService, modelStore: modelStore, actionStore: actionStore)
         panel = p
         shortcutManager.onActivate = { [weak p] in
             p?.toggle()

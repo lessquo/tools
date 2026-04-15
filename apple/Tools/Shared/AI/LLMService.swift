@@ -3,7 +3,7 @@ import Foundation
 
 @Observable
 @MainActor
-final class AIService {
+final class LLMService {
 
     let mlx = MLXService()
 
