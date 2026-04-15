@@ -159,10 +159,30 @@ final class ModelStore {
 
     func deleteDownload(_ model: HuggingFace.Model) throws {
         let modelID = model.id.rawValue
-        let cacheDir = cache.repoDirectory(repo: model.id, kind: .model)
-        if FileManager.default.fileExists(atPath: cacheDir.path()) {
-            try FileManager.default.removeItem(at: cacheDir)
+        let fm = FileManager.default
+        let repoName = modelID.replacingOccurrences(of: "/", with: "--")
+        let dirName = "models--\(repoName)"
+        let root = cache.cacheDirectory
+        let targets: [URL] = [
+            root.appendingPathComponent(dirName),
+            root.appendingPathComponent(".metadata").appendingPathComponent(dirName),
+            root.appendingPathComponent(".locks").appendingPathComponent(dirName),
+        ]
+
+        var firstError: Error?
+        for url in targets where fm.fileExists(atPath: url.path) {
+            do {
+                try fm.removeItem(at: url)
+            } catch {
+                if firstError == nil { firstError = error }
+            }
         }
+
+        if let error = firstError,
+           fm.fileExists(atPath: targets[0].path) {
+            throw error
+        }
+
         resolvedPaths[modelID] = nil
         downloadStates[modelID] = .notDownloaded
         downloadedSizes[modelID] = nil

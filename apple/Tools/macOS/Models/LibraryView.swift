@@ -91,7 +91,7 @@ struct LibraryView: View {
                 .help("Show in Finder")
             }
         }
-        .alert("Download Failed", isPresented: Binding(
+        .alert("Something went wrong", isPresented: Binding(
             get: { store.downloadError != nil },
             set: { if !$0 { store.downloadError = nil } }
         )) {

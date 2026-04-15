@@ -101,7 +101,11 @@ struct ModelRow: View {
                     }
                 }
                 Button("Delete", role: .destructive) {
-                    try? store.deleteDownload(model)
+                    do {
+                        try store.deleteDownload(model)
+                    } catch {
+                        store.downloadError = "Could not delete \(model.id.name): \(error.localizedDescription)"
+                    }
                 }
             }
             Divider()
