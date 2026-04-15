@@ -107,7 +107,7 @@ private struct TemplateDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(template.name)
-                    .font(.title3.bold())
+                    .font(.title2.bold())
                 if template.type == .script {
                     Text("JS").badgeStyle()
                 }

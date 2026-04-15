@@ -155,7 +155,8 @@ private struct ActionDetailView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             TextField("Name", text: $draft.name)
-                .textFieldStyle(.roundedBorder)
+                .font(.title2.bold())
+                .textFieldStyle(.plain)
                 .focused($isNameFocused)
 
             Picker("Type", selection: $draft.type) {
