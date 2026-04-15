@@ -1,3 +1,4 @@
+import AppKit
 import AVFAudio
 import SwiftUI
 
@@ -104,9 +105,22 @@ struct QuickstartView: View {
     }
 
     private func requestMicrophone() {
-        Task {
-            _ = await AVAudioApplication.requestRecordPermission()
-            refreshPermissions()
+        // macOS only shows the system prompt while permission is .undetermined.
+        // Once denied, the user has to toggle it back in System Settings.
+        switch AVAudioApplication.shared.recordPermission {
+        case .undetermined:
+            Task {
+                _ = await AVAudioApplication.requestRecordPermission()
+                refreshPermissions()
+            }
+        case .denied:
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+                NSWorkspace.shared.open(url)
+            }
+        case .granted:
+            break
+        @unknown default:
+            break
         }
     }
 
