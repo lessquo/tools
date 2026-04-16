@@ -19,11 +19,13 @@ struct MyActionsView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 4) {
                             Text(action.name.isEmpty ? "Untitled" : action.name)
-                            if action.type == .script {
-                                Text("JS").badgeStyle()
+                            switch action.type {
+                            case .script: Text("JS").badgeStyle()
+                            case .workflow: Text("WF").badgeStyle()
+                            case .llm: EmptyView()
                             }
                         }
-                        Text(action.type == .llm ? action.prompt : action.script)
+                        Text(actionSubtitle(action))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -106,6 +108,14 @@ struct MyActionsView: View {
         }
     }
 
+    private func actionSubtitle(_ action: Action) -> String {
+        switch action.type {
+        case .llm: action.prompt
+        case .script: action.script
+        case .workflow: "\(action.steps.count) step\(action.steps.count == 1 ? "" : "s")"
+        }
+    }
+
     private func addNew() {
         let action = Action(id: UUID(), name: "", prompt: "")
         store.add(action)
@@ -162,6 +172,7 @@ private struct ActionDetailView: View {
             Picker("Type", selection: $draft.type) {
                 Text("LLM").tag(Action.ActionType.llm)
                 Text("Script").tag(Action.ActionType.script)
+                Text("Workflow").tag(Action.ActionType.workflow)
             }
             .pickerStyle(.segmented)
             .fixedSize()
@@ -180,6 +191,8 @@ private struct ActionDetailView: View {
                 TextEditor(text: $draft.script)
                     .font(.system(.body, design: .monospaced))
                 ScriptPreviewView(script: draft.script)
+            case .workflow:
+                WorkflowEditorView(steps: $draft.steps, duplicateNames: draft.duplicateStepNames)
             }
         }
         .padding()

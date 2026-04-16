@@ -15,6 +15,8 @@ struct ActionPanelView: View {
                 statusLabel("Copying...", systemImage: "doc.on.clipboard")
             case .processing(_, let result):
                 previewArea(result, isStreaming: true)
+            case .processingWorkflow(_, let stepIndex, let stepCount, let stepName, let result):
+                workflowProgressArea(stepIndex: stepIndex, stepCount: stepCount, stepName: stepName, result: result)
             case .ready:
                 editablePreview
                 confirmBar
@@ -28,6 +30,47 @@ struct ActionPanelView: View {
         .frame(width: 300)
         .fixedSize(horizontal: false, vertical: true)
         .modifier(GlassBackgroundModifier())
+    }
+
+    // MARK: - Workflow Progress
+
+    private func workflowProgressArea(stepIndex: Int, stepCount: Int, stepName: String, result: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Step \(stepIndex + 1)/\(stepCount)")
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+                if !stepName.isEmpty {
+                    Text(stepName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            ProgressView(value: Double(stepIndex), total: Double(stepCount))
+                .controlSize(.small)
+
+            ScrollView {
+                Text(result)
+                    .font(.body)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 5)
+            }
+            .frame(maxHeight: 300)
+
+            HStack {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Generating...")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Cancel") { onDismiss() }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+            }
+        }
     }
 
     // MARK: - Preview

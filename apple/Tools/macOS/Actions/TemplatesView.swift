@@ -22,11 +22,13 @@ struct TemplatesView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 4) {
                             Text(template.name)
-                            if template.type == .script {
-                                Text("JS").badgeStyle()
+                            switch template.type {
+                            case .script: Text("JS").badgeStyle()
+                            case .workflow: Text("WF").badgeStyle()
+                            case .llm: EmptyView()
                             }
                         }
-                        Text(template.type == .llm ? template.prompt : template.script)
+                        Text(templateSubtitle(template))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -80,6 +82,14 @@ struct TemplatesView: View {
         }
     }
 
+    private func templateSubtitle(_ action: Action) -> String {
+        switch action.type {
+        case .llm: action.prompt
+        case .script: action.script
+        case .workflow: "\(action.steps.count) step\(action.steps.count == 1 ? "" : "s")"
+        }
+    }
+
     private var selectedTemplates: [Action] {
         templates.filter { state.selectedTemplateIDs.contains($0.id) }
     }
@@ -108,8 +118,10 @@ private struct TemplateDetailView: View {
             HStack {
                 Text(template.name)
                     .font(.title2.bold())
-                if template.type == .script {
-                    Text("JS").badgeStyle()
+                switch template.type {
+                case .script: Text("JS").badgeStyle()
+                case .workflow: Text("WF").badgeStyle()
+                case .llm: EmptyView()
                 }
                 Spacer()
                 Button {
@@ -123,15 +135,46 @@ private struct TemplateDetailView: View {
                 .controlSize(.small)
             }
 
-            ScrollView {
-                Text(template.type == .llm ? template.prompt : template.script)
-                    .font(template.type == .script ? .system(.body, design: .monospaced) : .body)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            if template.type == .script {
+            switch template.type {
+            case .llm:
+                ScrollView {
+                    Text(template.prompt)
+                        .font(.body)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            case .script:
+                ScrollView {
+                    Text(template.script)
+                        .font(.system(.body, design: .monospaced))
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 ScriptPreviewView(script: template.script)
+            case .workflow:
+                Text("\(template.steps.count) step\(template.steps.count == 1 ? "" : "s")")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                ForEach(template.steps) { step in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 4) {
+                            Text(step.name)
+                                .font(.body.bold())
+                            if step.type == .script {
+                                Text("JS").badgeStyle()
+                            }
+                        }
+                        Text(step.type == .llm ? step.prompt : step.script)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(3)
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.fill.quaternary)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                Spacer()
             }
         }
         .padding()

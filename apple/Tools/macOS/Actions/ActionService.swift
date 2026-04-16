@@ -6,6 +6,23 @@ struct Action: Codable, Identifiable, Equatable {
     enum ActionType: String, Codable, CaseIterable {
         case llm
         case script
+        case workflow
+    }
+
+    struct Step: Codable, Identifiable, Equatable {
+        var id: UUID
+        var name: String
+        var type: ActionType
+        var prompt: String
+        var script: String
+
+        init(id: UUID = UUID(), name: String = "", type: ActionType = .llm, prompt: String = "", script: String = "") {
+            self.id = id
+            self.name = name
+            self.type = type
+            self.prompt = prompt
+            self.script = script
+        }
     }
 
     var id: UUID
@@ -13,13 +30,15 @@ struct Action: Codable, Identifiable, Equatable {
     var type: ActionType
     var prompt: String
     var script: String
+    var steps: [Step]
 
-    init(id: UUID, name: String, type: ActionType = .llm, prompt: String = "", script: String = "") {
+    init(id: UUID = UUID(), name: String = "", type: ActionType = .llm, prompt: String = "", script: String = "", steps: [Step] = []) {
         self.id = id
         self.name = name
         self.type = type
         self.prompt = prompt
         self.script = script
+        self.steps = steps
     }
 
     init(from decoder: Decoder) throws {
@@ -29,10 +48,27 @@ struct Action: Codable, Identifiable, Equatable {
         type = try container.decodeIfPresent(ActionType.self, forKey: .type) ?? .llm
         prompt = try container.decodeIfPresent(String.self, forKey: .prompt) ?? ""
         script = try container.decodeIfPresent(String.self, forKey: .script) ?? ""
+        steps = try container.decodeIfPresent([Step].self, forKey: .steps) ?? []
     }
 
     func copy(id: UUID = UUID()) -> Action {
-        Action(id: id, name: name, type: type, prompt: prompt, script: script)
+        Action(id: id, name: name, type: type, prompt: prompt, script: script, steps: steps.map {
+            Step(name: $0.name, type: $0.type, prompt: $0.prompt, script: $0.script)
+        })
+    }
+
+    var duplicateStepNames: Set<String> {
+        let names = steps.map(\.name).filter { !$0.isEmpty }
+        var seen = Set<String>()
+        var dupes = Set<String>()
+        for name in names {
+            if !seen.insert(name).inserted { dupes.insert(name) }
+        }
+        return dupes
+    }
+
+    var hasValidStepNames: Bool {
+        duplicateStepNames.isEmpty && steps.allSatisfy { !$0.name.isEmpty }
     }
 
     static let defaultNames: Set<String> = ["Fix grammar", "Summarize", "Translate to English", "Sort lines", "Count characters"]
@@ -55,6 +91,11 @@ struct Action: Codable, Identifiable, Equatable {
         Action(id: UUID(), name: "Count words", type: .script, script: "output = input.trim().split(/\\s+/).length"),
         Action(id: UUID(), name: "Lower case", type: .script, script: "output = input.toLowerCase()"),
         Action(id: UUID(), name: "Upper case", type: .script, script: "output = input.toUpperCase()"),
+        // Workflow
+        Action(id: UUID(), name: "Polish & Trim", type: .workflow, steps: [
+            Action.Step(name: "Polish", type: .llm, prompt: "Fix grammar and improve clarity. Preserve the original language and meaning. Output ONLY the result.\n\n\"\"\"\n{{input}}\n\"\"\""),
+            Action.Step(name: "Trim", type: .script, script: "output = Polish.trim()"),
+        ]),
     ]
 }
 
@@ -66,6 +107,7 @@ final class ActionService {
         case idle
         case copying
         case processing(original: String, result: String)
+        case processingWorkflow(original: String, stepIndex: Int, stepCount: Int, stepName: String, result: String)
         case ready(original: String, result: String)
         case pasting
         case error(String)
@@ -119,28 +161,16 @@ final class ActionService {
             await processLLMAction(action, text: text)
         case .script:
             await processScriptAction(action, text: text)
+        case .workflow:
+            await processWorkflow(action, text: text)
         }
     }
 
     private func processLLMAction(_ action: Action, text: String) async {
-        guard modelStore.isModelDownloaded(for: .actionPanel) else {
-            status = .error("No model downloaded")
-            return
-        }
-
         status = .processing(original: text, result: "")
-
-        let modelID = modelStore.modelID(for: .actionPanel)
-        let modelDir = modelStore.modelDirectory(for: modelID)
-
         do {
-            try await llm.loadModel(id: modelID, directory: modelDir)
-
-            var result = ""
-            let stream = llm.generateStream(prompt: action.prompt.replacingOccurrences(of: "{{input}}", with: text))
-            for try await chunk in stream {
-                result += chunk
-                status = .processing(original: text, result: result)
+            let result = try await runLLM(prompt: substituteVariables(in: action.prompt, variables: ["input": text])) { partial in
+                self.status = .processing(original: text, result: partial)
             }
             editedResult = result
             status = .ready(original: text, result: result)
@@ -151,9 +181,8 @@ final class ActionService {
 
     private func processScriptAction(_ action: Action, text: String) async {
         status = .processing(original: text, result: "")
-
         do {
-            let result = try await runScript(action.script, input: text)
+            let result = try await runScript(action.script, variables: ["input": text])
             editedResult = result
             status = .ready(original: text, result: result)
         } catch {
@@ -161,7 +190,79 @@ final class ActionService {
         }
     }
 
-    private func runScript(_ script: String, input: String) async throws -> String {
+    private func processWorkflow(_ action: Action, text: String) async {
+        let steps = action.steps
+        guard !steps.isEmpty else {
+            status = .error("Workflow has no steps")
+            return
+        }
+
+        var outputs: [String: String] = ["input": text]
+        var lastResult = ""
+
+        for (index, step) in steps.enumerated() {
+            guard !Task.isCancelled else { return }
+
+            status = .processingWorkflow(original: text, stepIndex: index, stepCount: steps.count, stepName: step.name, result: "")
+
+            do {
+                let result: String
+                switch step.type {
+                case .llm:
+                    let prompt = substituteVariables(in: step.prompt, variables: outputs)
+                    result = try await runLLM(prompt: prompt) { partial in
+                        self.status = .processingWorkflow(original: text, stepIndex: index, stepCount: steps.count, stepName: step.name, result: partial)
+                    }
+                case .script:
+                    result = try await runScript(step.script, variables: outputs)
+                case .workflow:
+                    status = .error("Nested workflows are not supported")
+                    return
+                }
+
+                lastResult = result
+                if !step.name.isEmpty {
+                    outputs[step.name] = result
+                }
+            } catch {
+                status = .error("Step \"\(step.name)\" failed: \(error.localizedDescription)")
+                return
+            }
+        }
+
+        editedResult = lastResult
+        status = .ready(original: text, result: lastResult)
+    }
+
+    // MARK: - Execution Primitives
+
+    private func runLLM(prompt: String, onChunk: @escaping (String) -> Void) async throws -> String {
+        guard modelStore.isModelDownloaded(for: .actionPanel) else {
+            throw LLMRunError.noModel
+        }
+
+        let modelID = modelStore.modelID(for: .actionPanel)
+        let modelDir = modelStore.modelDirectory(for: modelID)
+        try await llm.loadModel(id: modelID, directory: modelDir)
+
+        var result = ""
+        let stream = llm.generateStream(prompt: prompt)
+        for try await chunk in stream {
+            result += chunk
+            onChunk(result)
+        }
+        return result
+    }
+
+    private func substituteVariables(in template: String, variables: [String: String]) -> String {
+        var result = template
+        for (key, value) in variables {
+            result = result.replacingOccurrences(of: "{{\(key)}}", with: value)
+        }
+        return result
+    }
+
+    private func runScript(_ script: String, variables: [String: String]) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             var resumed = false
             let lock = NSLock()
@@ -176,7 +277,9 @@ final class ActionService {
 
             let workItem = DispatchWorkItem {
                 let context = JSContext()!
-                context.setObject(input, forKeyedSubscript: "input" as NSString)
+                for (key, value) in variables {
+                    context.setObject(value, forKeyedSubscript: key as NSString)
+                }
 
                 var jsError: String?
                 context.exceptionHandler = { _, exception in
@@ -238,6 +341,16 @@ final class ActionService {
         await processAction(action, text: text)
         guard case .ready = status else { return }
         await applyResult()
+    }
+}
+
+private enum LLMRunError: LocalizedError {
+    case noModel
+
+    var errorDescription: String? {
+        switch self {
+        case .noModel: "No model downloaded"
+        }
     }
 }
 

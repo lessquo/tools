@@ -44,11 +44,13 @@ struct MultiSelectionView: View {
                         HStack(spacing: 4) {
                             Text(item.name.isEmpty ? "Untitled" : item.name)
                                 .fontWeight(.medium)
-                            if item.type == .script {
-                                Text("JS").badgeStyle()
+                            switch item.type {
+                            case .script: Text("JS").badgeStyle()
+                            case .workflow: Text("WF").badgeStyle()
+                            case .llm: EmptyView()
                             }
                         }
-                        Text(item.type == .llm ? item.prompt : item.script)
+                        Text(Self.subtitle(for: item))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
@@ -58,6 +60,14 @@ struct MultiSelectionView: View {
             }
         }
         .padding()
+    }
+
+    private static func subtitle(for action: Action) -> String {
+        switch action.type {
+        case .llm: action.prompt
+        case .script: action.script
+        case .workflow: "\(action.steps.count) step\(action.steps.count == 1 ? "" : "s")"
+        }
     }
 
     @ViewBuilder
