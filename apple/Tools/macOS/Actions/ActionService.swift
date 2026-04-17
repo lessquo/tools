@@ -64,12 +64,6 @@ struct Action: Codable, Identifiable, Equatable {
         // LLM
         Action(id: UUID(), name: "Fix grammar", prompt: "Fix grammar and spelling errors. Preserve the original language, tone, and formatting. If already correct, return unchanged. Output ONLY the result.\n\n\"\"\"\n{{input}}\n\"\"\""),
         Action(id: UUID(), name: "Summarize", prompt: "Summarize in 2-3 sentences. Respond in the same language as the input. Output ONLY the summary.\n\n\"\"\"\n{{input}}\n\"\"\""),
-        Action(id: UUID(), name: "Translate to English", prompt: "Translate to English. Preserve the original formatting. If already in English, return unchanged. Output ONLY the translation.\n\n\"\"\"\n{{input}}\n\"\"\""),
-        Action(id: UUID(), name: "Make concise", prompt: "Rewrite to be shorter while preserving the full meaning. Remove filler words and redundancy. Respond in the same language as the input. Output ONLY the result.\n\n\"\"\"\n{{input}}\n\"\"\""),
-        Action(id: UUID(), name: "Professional tone", prompt: "Rewrite in a clear, professional tone suitable for work communication. Preserve the original meaning and language. Output ONLY the result.\n\n\"\"\"\n{{input}}\n\"\"\""),
-        Action(id: UUID(), name: "Friendly tone", prompt: "Rewrite in a warm, conversational tone. Preserve the original meaning and language. Output ONLY the result.\n\n\"\"\"\n{{input}}\n\"\"\""),
-        Action(id: UUID(), name: "Extract key points", prompt: "Extract the key points as a concise bulleted list. Respond in the same language as the input. Output ONLY the list.\n\n\"\"\"\n{{input}}\n\"\"\""),
-        Action(id: UUID(), name: "Explain simply", prompt: "Explain this in plain, simple language that anyone can understand. Respond in the same language as the input. Output ONLY the explanation.\n\n\"\"\"\n{{input}}\n\"\"\""),
         // Script
         Action(id: UUID(), name: "Sort lines", type: .js, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
         Action(id: UUID(), name: "Count characters", type: .js, script: "output = input.length"),
