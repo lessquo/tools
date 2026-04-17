@@ -41,6 +41,7 @@ private struct ProviderRow: View {
                 HStack {
                     Text(provider.apiKeyName).foregroundStyle(.secondary)
                     Spacer()
+                    StatusIndicator(state: store.fetchStates[provider] ?? .idle)
                     Button(hasKey ? "Edit" : "Add") {
                         isRevealed = true
                     }
@@ -72,6 +73,27 @@ private struct ProviderRow: View {
             if hasKey, store.fetchStates[provider] == .idle {
                 await store.fetchModels(for: provider)
             }
+        }
+    }
+}
+
+private struct StatusIndicator: View {
+    let state: CloudStore.FetchState
+
+    var body: some View {
+        switch state {
+        case .idle:
+            EmptyView()
+        case .loading:
+            ProgressView().controlSize(.small)
+        case .loaded:
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+                .help("Connected")
+        case .failed(let message):
+            Image(systemName: "exclamationmark.circle.fill")
+                .foregroundStyle(.red)
+                .help(message)
         }
     }
 }
