@@ -192,7 +192,7 @@ private struct ActionDetailView: View {
                     .font(.system(.body, design: .monospaced))
                 ScriptPreviewView(script: draft.script)
             case .workflow:
-                WorkflowEditorView(steps: $draft.steps, duplicateNames: draft.duplicateStepNames)
+                WorkflowEditorView(steps: $draft.steps)
             }
         }
         .padding()

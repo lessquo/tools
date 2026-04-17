@@ -57,20 +57,6 @@ struct Action: Codable, Identifiable, Equatable {
         })
     }
 
-    var duplicateStepNames: Set<String> {
-        let names = steps.map(\.name).filter { !$0.isEmpty }
-        var seen = Set<String>()
-        var dupes = Set<String>()
-        for name in names {
-            if !seen.insert(name).inserted { dupes.insert(name) }
-        }
-        return dupes
-    }
-
-    var hasValidStepNames: Bool {
-        duplicateStepNames.isEmpty && steps.allSatisfy { !$0.name.isEmpty }
-    }
-
     static let defaultNames: Set<String> = ["Fix grammar", "Summarize", "Translate to English", "Sort lines", "Count characters"]
     static let defaults: [Action] = templates.filter { defaultNames.contains($0.name) }.map { $0.copy() }
 

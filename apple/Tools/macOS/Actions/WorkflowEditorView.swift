@@ -2,7 +2,6 @@ import SwiftUI
 
 struct WorkflowEditorView: View {
     @Binding var steps: [Action.Step]
-    let duplicateNames: Set<String>
     @Environment(ActionStore.self) private var store
 
     var body: some View {
@@ -37,7 +36,6 @@ struct WorkflowEditorView: View {
                     ForEach($steps) { $step in
                         StepEditorRow(
                             step: $step,
-                            isDuplicateName: duplicateNames.contains(step.name),
                             availableVariables: availableVariables(before: step.id)
                         )
                     }
@@ -75,20 +73,13 @@ struct WorkflowEditorView: View {
 
 private struct StepEditorRow: View {
     @Binding var step: Action.Step
-    let isDuplicateName: Bool
     let availableVariables: [String]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                TextField("Step name", text: $step.name)
-                    .textFieldStyle(.roundedBorder)
-                if isDuplicateName {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                        .help("Step names must be unique within a workflow")
-                }
-            }
+            TextField("Step name", text: $step.name)
+                .font(.title3.bold())
+                .textFieldStyle(.plain)
 
             Picker("", selection: $step.type) {
                 Text("LLM").tag(Action.ActionType.llm)
