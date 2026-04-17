@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct WorkflowEditorView: View {
+struct StepsView: View {
     @Binding var steps: [Action.Step]
 
     var body: some View {
@@ -23,7 +23,7 @@ struct WorkflowEditorView: View {
             } else {
                 List {
                     ForEach($steps) { $step in
-                        StepEditorRow(
+                        StepRow(
                             step: $step,
                             availableVariables: availableVariables(before: step.id)
                         )
@@ -51,7 +51,7 @@ struct WorkflowEditorView: View {
     }
 }
 
-private struct StepEditorRow: View {
+private struct StepRow: View {
     @Binding var step: Action.Step
     let availableVariables: [String]
 

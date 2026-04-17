@@ -158,7 +158,7 @@ private struct ActionDetailView: View {
                 .textFieldStyle(.plain)
                 .focused($isNameFocused)
 
-            WorkflowEditorView(steps: $draft.steps)
+            StepsView(steps: $draft.steps)
         }
         .padding()
         .onAppear {
