@@ -6,8 +6,16 @@ struct CloudView: View {
     var body: some View {
         Form {
             ForEach(CloudStore.Provider.allCases) { provider in
-                Section(provider.label) {
+                Section {
                     ProviderRow(provider: provider)
+                } header: {
+                    HStack {
+                        Image(provider.rawValue)
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        Text(provider.label)
+                    }
                 }
             }
         }
