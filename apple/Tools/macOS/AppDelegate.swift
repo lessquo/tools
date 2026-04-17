@@ -40,6 +40,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let myActionsState = MyActionsViewState()
     let templatesState = TemplatesViewState()
     let modelStore = ModelStore()
+    let cloudStore = CloudStore()
     let modelsState = ModelsViewState()
     let libraryState = LibraryViewState()
     let exploreState = ExploreViewState()
