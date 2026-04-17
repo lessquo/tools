@@ -18,6 +18,7 @@ struct CloudView: View {
 private struct ProviderRow: View {
     @Environment(CloudStore.self) private var store
     @State private var isRevealed = false
+    @FocusState private var isFieldFocused: Bool
     let provider: CloudStore.Provider
 
     private var hasKey: Bool { !(store.apiKeys[provider] ?? "").isEmpty }
@@ -30,6 +31,8 @@ private struct ProviderRow: View {
                         get: { store.apiKeys[provider] ?? "" },
                         set: { store.setAPIKey($0, for: provider) }
                     ))
+                    .focused($isFieldFocused)
+                    .onAppear { isFieldFocused = true }
                     Button("Save") {
                         store.saveAPIKey(for: provider)
                         isRevealed = false
