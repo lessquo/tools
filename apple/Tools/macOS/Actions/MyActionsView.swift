@@ -20,7 +20,7 @@ struct MyActionsView: View {
                         HStack(spacing: 4) {
                             Text(action.name.isEmpty ? "Untitled" : action.name)
                             switch action.type {
-                            case .script: Text("JS").badgeStyle()
+                            case .js: Text("JS").badgeStyle()
                             case .workflow: Text("WF").badgeStyle()
                             case .llm: EmptyView()
                             }
@@ -111,7 +111,7 @@ struct MyActionsView: View {
     private func actionSubtitle(_ action: Action) -> String {
         switch action.type {
         case .llm: action.prompt
-        case .script: action.script
+        case .js: action.script
         case .workflow: "\(action.steps.count) step\(action.steps.count == 1 ? "" : "s")"
         }
     }
@@ -171,7 +171,7 @@ private struct ActionDetailView: View {
 
             Picker("Type", selection: $draft.type) {
                 Text("LLM").tag(Action.ActionType.llm)
-                Text("Script").tag(Action.ActionType.script)
+                Text("JS").tag(Action.ActionType.js)
                 Text("Workflow").tag(Action.ActionType.workflow)
             }
             .pickerStyle(.segmented)
@@ -184,7 +184,7 @@ private struct ActionDetailView: View {
                     .foregroundStyle(.secondary)
                 TextEditor(text: $draft.prompt)
                     .font(.body)
-            case .script:
+            case .js:
                 Text("JavaScript — read `input`, set `output`")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

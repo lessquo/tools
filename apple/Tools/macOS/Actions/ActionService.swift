@@ -5,7 +5,7 @@ struct Action: Codable, Identifiable, Equatable {
 
     enum ActionType: String, Codable, CaseIterable {
         case llm
-        case script
+        case js
         case workflow
     }
 
@@ -85,16 +85,16 @@ struct Action: Codable, Identifiable, Equatable {
         Action(id: UUID(), name: "Extract key points", prompt: "Extract the key points as a concise bulleted list. Respond in the same language as the input. Output ONLY the list.\n\n\"\"\"\n{{input}}\n\"\"\""),
         Action(id: UUID(), name: "Explain simply", prompt: "Explain this in plain, simple language that anyone can understand. Respond in the same language as the input. Output ONLY the explanation.\n\n\"\"\"\n{{input}}\n\"\"\""),
         // Script
-        Action(id: UUID(), name: "Sort lines", type: .script, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
-        Action(id: UUID(), name: "Count characters", type: .script, script: "output = input.length"),
-        Action(id: UUID(), name: "Count lines", type: .script, script: "output = input.split('\\n').length"),
-        Action(id: UUID(), name: "Count words", type: .script, script: "output = input.trim().split(/\\s+/).length"),
-        Action(id: UUID(), name: "Lower case", type: .script, script: "output = input.toLowerCase()"),
-        Action(id: UUID(), name: "Upper case", type: .script, script: "output = input.toUpperCase()"),
+        Action(id: UUID(), name: "Sort lines", type: .js, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
+        Action(id: UUID(), name: "Count characters", type: .js, script: "output = input.length"),
+        Action(id: UUID(), name: "Count lines", type: .js, script: "output = input.split('\\n').length"),
+        Action(id: UUID(), name: "Count words", type: .js, script: "output = input.trim().split(/\\s+/).length"),
+        Action(id: UUID(), name: "Lower case", type: .js, script: "output = input.toLowerCase()"),
+        Action(id: UUID(), name: "Upper case", type: .js, script: "output = input.toUpperCase()"),
         // Workflow
         Action(id: UUID(), name: "Polish & Trim", type: .workflow, steps: [
             Action.Step(name: "Polish", type: .llm, prompt: "Fix grammar and improve clarity. Preserve the original language and meaning. Output ONLY the result.\n\n\"\"\"\n{{input}}\n\"\"\""),
-            Action.Step(name: "Trim", type: .script, script: "output = Polish.trim()"),
+            Action.Step(name: "Trim", type: .js, script: "output = Polish.trim()"),
         ]),
     ]
 }
@@ -159,7 +159,7 @@ final class ActionService {
         switch action.type {
         case .llm:
             await processLLMAction(action, text: text)
-        case .script:
+        case .js:
             await processScriptAction(action, text: text)
         case .workflow:
             await processWorkflow(action, text: text)
@@ -213,7 +213,7 @@ final class ActionService {
                     result = try await runLLM(prompt: prompt) { partial in
                         self.status = .processingWorkflow(original: text, stepIndex: index, stepCount: steps.count, stepName: step.name, result: partial)
                     }
-                case .script:
+                case .js:
                     result = try await runScript(step.script, variables: outputs)
                 case .workflow:
                     status = .error("Nested workflows are not supported")

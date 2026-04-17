@@ -23,7 +23,7 @@ struct TemplatesView: View {
                         HStack(spacing: 4) {
                             Text(template.name)
                             switch template.type {
-                            case .script: Text("JS").badgeStyle()
+                            case .js: Text("JS").badgeStyle()
                             case .workflow: Text("WF").badgeStyle()
                             case .llm: EmptyView()
                             }
@@ -85,7 +85,7 @@ struct TemplatesView: View {
     private func templateSubtitle(_ action: Action) -> String {
         switch action.type {
         case .llm: action.prompt
-        case .script: action.script
+        case .js: action.script
         case .workflow: "\(action.steps.count) step\(action.steps.count == 1 ? "" : "s")"
         }
     }
@@ -119,7 +119,7 @@ private struct TemplateDetailView: View {
                 Text(template.name)
                     .font(.title2.bold())
                 switch template.type {
-                case .script: Text("JS").badgeStyle()
+                case .js: Text("JS").badgeStyle()
                 case .workflow: Text("WF").badgeStyle()
                 case .llm: EmptyView()
                 }
@@ -143,7 +143,7 @@ private struct TemplateDetailView: View {
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
-            case .script:
+            case .js:
                 ScrollView {
                     Text(template.script)
                         .font(.system(.body, design: .monospaced))
@@ -160,7 +160,7 @@ private struct TemplateDetailView: View {
                         HStack(spacing: 4) {
                             Text(step.name)
                                 .font(.body.bold())
-                            if step.type == .script {
+                            if step.type == .js {
                                 Text("JS").badgeStyle()
                             }
                         }

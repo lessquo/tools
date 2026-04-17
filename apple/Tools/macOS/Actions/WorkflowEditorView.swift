@@ -92,7 +92,7 @@ private struct StepEditorRow: View {
 
             Picker("", selection: $step.type) {
                 Text("LLM").tag(Action.ActionType.llm)
-                Text("Script").tag(Action.ActionType.script)
+                Text("JS").tag(Action.ActionType.js)
             }
             .pickerStyle(.segmented)
             .fixedSize()
@@ -105,7 +105,7 @@ private struct StepEditorRow: View {
                 TextEditor(text: $step.prompt)
                     .font(.body)
                     .frame(minHeight: 60, maxHeight: 120)
-            case .script:
+            case .js:
                 Text("Variables: \(availableVariables.joined(separator: ", "))")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)

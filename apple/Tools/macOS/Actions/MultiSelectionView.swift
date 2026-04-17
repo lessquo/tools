@@ -45,7 +45,7 @@ struct MultiSelectionView: View {
                             Text(item.name.isEmpty ? "Untitled" : item.name)
                                 .fontWeight(.medium)
                             switch item.type {
-                            case .script: Text("JS").badgeStyle()
+                            case .js: Text("JS").badgeStyle()
                             case .workflow: Text("WF").badgeStyle()
                             case .llm: EmptyView()
                             }
@@ -65,7 +65,7 @@ struct MultiSelectionView: View {
     private static func subtitle(for action: Action) -> String {
         switch action.type {
         case .llm: action.prompt
-        case .script: action.script
+        case .js: action.script
         case .workflow: "\(action.steps.count) step\(action.steps.count == 1 ? "" : "s")"
         }
     }
