@@ -17,16 +17,35 @@ struct CloudView: View {
 
 private struct ProviderRow: View {
     @Environment(CloudStore.self) private var store
+    @State private var isRevealed = false
     let provider: CloudStore.Provider
 
-    private var apiKey: String { store.apiKeys[provider] ?? "" }
+    private var hasKey: Bool { !(store.apiKeys[provider] ?? "").isEmpty }
 
     var body: some View {
         Group {
-            SecureField(provider.apiKeyName, text: Binding(
-                get: { store.apiKeys[provider] ?? "" },
-                set: { store.setAPIKey($0, for: provider) }
-            ))
+            if isRevealed {
+                HStack {
+                    SecureField(provider.apiKeyName, text: Binding(
+                        get: { store.apiKeys[provider] ?? "" },
+                        set: { store.setAPIKey($0, for: provider) }
+                    ))
+                    Button("Save") {
+                        store.saveAPIKey(for: provider)
+                        isRevealed = false
+                        Task { await store.fetchModels(for: provider) }
+                    }
+                    .keyboardShortcut(.defaultAction)
+                }
+            } else {
+                HStack {
+                    Text(provider.apiKeyName).foregroundStyle(.secondary)
+                    Spacer()
+                    Button(hasKey ? "Edit" : "Add") {
+                        isRevealed = true
+                    }
+                }
+            }
 
             switch store.fetchStates[provider] ?? .idle {
             case .idle:
@@ -49,11 +68,10 @@ private struct ProviderRow: View {
                 Text(message).foregroundStyle(.red)
             }
         }
-        .task(id: apiKey) {
-            try? await Task.sleep(for: .milliseconds(500))
-            guard !Task.isCancelled else { return }
-            store.saveAPIKey(for: provider)
-            await store.fetchModels(for: provider)
+        .task {
+            if hasKey, store.fetchStates[provider] == .idle {
+                await store.fetchModels(for: provider)
+            }
         }
     }
 }
