@@ -23,7 +23,7 @@ final class CloudStore {
         var apiKeyName: String {
             switch self {
             case .anthropic: "ANTHROPIC_API_KEY"
-            case .google: "GEMINI_API_KEY"
+            case .google: "GOOGLE_API_KEY"
             case .openai: "OPENAI_API_KEY"
             }
         }
