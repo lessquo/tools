@@ -3,20 +3,19 @@ import JavaScriptCore
 
 struct Action: Codable, Identifiable, Equatable {
 
-    enum ActionType: String, Codable, CaseIterable {
-        case llm
-        case js
-        case workflow
-    }
-
     struct Step: Codable, Identifiable, Equatable {
+        enum Kind: String, Codable, CaseIterable {
+            case llm
+            case js
+        }
+
         var id: UUID
         var name: String
-        var type: ActionType
+        var type: Kind
         var prompt: String
         var script: String
 
-        init(id: UUID = UUID(), name: String = "", type: ActionType = .llm, prompt: String = "", script: String = "") {
+        init(id: UUID = UUID(), name: String = "", type: Kind = .llm, prompt: String = "", script: String = "") {
             self.id = id
             self.name = name
             self.type = type
@@ -27,54 +26,42 @@ struct Action: Codable, Identifiable, Equatable {
 
     var id: UUID
     var name: String
-    var type: ActionType
-    var prompt: String
-    var script: String
     var steps: [Step]
 
-    init(id: UUID = UUID(), name: String = "", type: ActionType = .llm, prompt: String = "", script: String = "", steps: [Step] = []) {
+    init(id: UUID = UUID(), name: String = "", steps: [Step] = [Step()]) {
         self.id = id
         self.name = name
-        self.type = type
-        self.prompt = prompt
-        self.script = script
         self.steps = steps
     }
 
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        name = try container.decode(String.self, forKey: .name)
-        type = try container.decodeIfPresent(ActionType.self, forKey: .type) ?? .llm
-        prompt = try container.decodeIfPresent(String.self, forKey: .prompt) ?? ""
-        script = try container.decodeIfPresent(String.self, forKey: .script) ?? ""
-        steps = try container.decodeIfPresent([Step].self, forKey: .steps) ?? []
-    }
-
     func copy(id: UUID = UUID()) -> Action {
-        Action(id: id, name: name, type: type, prompt: prompt, script: script, steps: steps.map {
+        Action(id: id, name: name, steps: steps.map {
             Step(name: $0.name, type: $0.type, prompt: $0.prompt, script: $0.script)
         })
     }
 
-    static let defaultNames: Set<String> = ["Fix grammar", "Summarize", "Translate to English", "Sort lines", "Count characters"]
+    static let defaultNames: Set<String> = ["Fix grammar", "Summarize", "Translate to English", "Sort lines", "Count"]
     static let defaults: [Action] = templates.filter { defaultNames.contains($0.name) }.map { $0.copy() }
 
     static let templates: [Action] = [
-        // LLM
-        Action(id: UUID(), name: "Fix grammar", prompt: "Fix grammar and spelling errors. Preserve the original language, tone, and formatting. If already correct, return unchanged. Output ONLY the result.\n\n\"\"\"\n{{input}}\n\"\"\""),
-        Action(id: UUID(), name: "Summarize", prompt: "Summarize in 2-3 sentences. Respond in the same language as the input. Output ONLY the summary.\n\n\"\"\"\n{{input}}\n\"\"\""),
-        // Script
-        Action(id: UUID(), name: "Sort lines", type: .js, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
-        Action(id: UUID(), name: "Count characters", type: .js, script: "output = input.length"),
-        Action(id: UUID(), name: "Count lines", type: .js, script: "output = input.split('\\n').length"),
-        Action(id: UUID(), name: "Count words", type: .js, script: "output = input.trim().split(/\\s+/).length"),
-        Action(id: UUID(), name: "Lower case", type: .js, script: "output = input.toLowerCase()"),
-        Action(id: UUID(), name: "Upper case", type: .js, script: "output = input.toUpperCase()"),
-        // Workflow
-        Action(id: UUID(), name: "Polish & Trim", type: .workflow, steps: [
-            Action.Step(name: "Polish", type: .llm, prompt: "Fix grammar and improve clarity. Preserve the original language and meaning. Output ONLY the result.\n\n\"\"\"\n{{input}}\n\"\"\""),
-            Action.Step(name: "Trim", type: .js, script: "output = Polish.trim()"),
+        Action(id: UUID(), name: "Fix grammar", steps: [
+            Step(name: "Fix", type: .llm, prompt: "Fix grammar and spelling errors. Preserve the original language, tone, and formatting. If already correct, return unchanged. Output ONLY the result.\n\n\"\"\"\n{{input}}\n\"\"\""),
+            Step(name: "Trim", type: .js, script: "output = Fix.trim()"),
+        ]),
+        Action(id: UUID(), name: "Summarize", steps: [
+            Step(name: "Summary", type: .llm, prompt: "Summarize in 2-3 sentences. Respond in the same language as the input. Output ONLY the summary.\n\n\"\"\"\n{{input}}\n\"\"\""),
+        ]),
+        Action(id: UUID(), name: "Sort lines", steps: [
+            Step(name: "Sort", type: .js, script: "output = input.split('\\n').sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).join('\\n')"),
+        ]),
+        Action(id: UUID(), name: "Count", steps: [
+            Step(name: "Count", type: .js, script: "output = `${input.length} characters, ${input.trim().split(/\\s+/).length} words, ${input.split('\\n').length} lines`"),
+        ]),
+        Action(id: UUID(), name: "Lower case", steps: [
+            Step(name: "Lower", type: .js, script: "output = input.toLowerCase()"),
+        ]),
+        Action(id: UUID(), name: "Upper case", steps: [
+            Step(name: "Upper", type: .js, script: "output = input.toUpperCase()"),
         ]),
     ]
 }
@@ -86,8 +73,7 @@ final class ActionService {
     enum Status: Equatable {
         case idle
         case copying
-        case processing(original: String, result: String)
-        case processingWorkflow(original: String, stepIndex: Int, stepCount: Int, stepName: String, result: String)
+        case processing(original: String, stepIndex: Int, stepCount: Int, stepName: String, result: String)
         case ready(original: String, result: String)
         case pasting
         case error(String)
@@ -136,44 +122,9 @@ final class ActionService {
     }
 
     func processAction(_ action: Action, text: String) async {
-        switch action.type {
-        case .llm:
-            await processLLMAction(action, text: text)
-        case .js:
-            await processScriptAction(action, text: text)
-        case .workflow:
-            await processWorkflow(action, text: text)
-        }
-    }
-
-    private func processLLMAction(_ action: Action, text: String) async {
-        status = .processing(original: text, result: "")
-        do {
-            let result = try await runLLM(prompt: substituteVariables(in: action.prompt, variables: ["input": text])) { partial in
-                self.status = .processing(original: text, result: partial)
-            }
-            editedResult = result
-            status = .ready(original: text, result: result)
-        } catch {
-            status = .error(error.localizedDescription)
-        }
-    }
-
-    private func processScriptAction(_ action: Action, text: String) async {
-        status = .processing(original: text, result: "")
-        do {
-            let result = try await runScript(action.script, variables: ["input": text])
-            editedResult = result
-            status = .ready(original: text, result: result)
-        } catch {
-            status = .error(error.localizedDescription)
-        }
-    }
-
-    private func processWorkflow(_ action: Action, text: String) async {
         let steps = action.steps
         guard !steps.isEmpty else {
-            status = .error("Workflow has no steps")
+            status = .error("Action has no steps")
             return
         }
 
@@ -183,7 +134,7 @@ final class ActionService {
         for (index, step) in steps.enumerated() {
             guard !Task.isCancelled else { return }
 
-            status = .processingWorkflow(original: text, stepIndex: index, stepCount: steps.count, stepName: step.name, result: "")
+            status = .processing(original: text, stepIndex: index, stepCount: steps.count, stepName: step.name, result: "")
 
             do {
                 let result: String
@@ -191,13 +142,10 @@ final class ActionService {
                 case .llm:
                     let prompt = substituteVariables(in: step.prompt, variables: outputs)
                     result = try await runLLM(prompt: prompt) { partial in
-                        self.status = .processingWorkflow(original: text, stepIndex: index, stepCount: steps.count, stepName: step.name, result: partial)
+                        self.status = .processing(original: text, stepIndex: index, stepCount: steps.count, stepName: step.name, result: partial)
                     }
                 case .js:
                     result = try await runScript(step.script, variables: outputs)
-                case .workflow:
-                    status = .error("Nested workflows are not supported")
-                    return
                 }
 
                 lastResult = result
@@ -205,7 +153,8 @@ final class ActionService {
                     outputs[step.name] = result
                 }
             } catch {
-                status = .error("Step \"\(step.name)\" failed: \(error.localizedDescription)")
+                let label = step.name.isEmpty ? "Step \(index + 1)" : "Step \"\(step.name)\""
+                status = .error("\(label) failed: \(error.localizedDescription)")
                 return
             }
         }

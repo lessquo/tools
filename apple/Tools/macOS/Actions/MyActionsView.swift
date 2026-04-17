@@ -17,14 +17,7 @@ struct MyActionsView: View {
             List(selection: $state.selectedActionIDs) {
                 ForEach(store.actions) { action in
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Text(action.name.isEmpty ? "Untitled" : action.name)
-                            switch action.type {
-                            case .js: Text("JS").badgeStyle()
-                            case .workflow: Text("WF").badgeStyle()
-                            case .llm: EmptyView()
-                            }
-                        }
+                        Text(action.name.isEmpty ? "Untitled" : action.name)
                         Text(actionSubtitle(action))
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -109,15 +102,11 @@ struct MyActionsView: View {
     }
 
     private func actionSubtitle(_ action: Action) -> String {
-        switch action.type {
-        case .llm: action.prompt
-        case .js: action.script
-        case .workflow: "\(action.steps.count) step\(action.steps.count == 1 ? "" : "s")"
-        }
+        "\(action.steps.count) step\(action.steps.count == 1 ? "" : "s")"
     }
 
     private func addNew() {
-        let action = Action(id: UUID(), name: "", prompt: "")
+        let action = Action(id: UUID(), name: "")
         store.add(action)
         focusNewActionID = action.id
         state.selectedActionIDs = [action.id]
@@ -169,31 +158,7 @@ private struct ActionDetailView: View {
                 .textFieldStyle(.plain)
                 .focused($isNameFocused)
 
-            Picker("Type", selection: $draft.type) {
-                Text("LLM").tag(Action.ActionType.llm)
-                Text("JS").tag(Action.ActionType.js)
-                Text("Workflow").tag(Action.ActionType.workflow)
-            }
-            .pickerStyle(.segmented)
-            .fixedSize()
-
-            switch draft.type {
-            case .llm:
-                Text("Prompt — use {{input}} for selected text")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                TextEditor(text: $draft.prompt)
-                    .font(.body)
-            case .js:
-                Text("JavaScript — read `input`, set `output`")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                TextEditor(text: $draft.script)
-                    .font(.system(.body, design: .monospaced))
-                ScriptPreviewView(script: draft.script)
-            case .workflow:
-                WorkflowEditorView(steps: $draft.steps)
-            }
+            WorkflowEditorView(steps: $draft.steps)
         }
         .padding()
         .onAppear {

@@ -62,8 +62,8 @@ private struct StepEditorRow: View {
                 .textFieldStyle(.plain)
 
             Picker("", selection: $step.type) {
-                Text("LLM").tag(Action.ActionType.llm)
-                Text("JS").tag(Action.ActionType.js)
+                Text("LLM").tag(Action.Step.Kind.llm)
+                Text("JS").tag(Action.Step.Kind.js)
             }
             .pickerStyle(.segmented)
             .fixedSize()
@@ -83,8 +83,6 @@ private struct StepEditorRow: View {
                 TextEditor(text: $step.script)
                     .font(.system(.body, design: .monospaced))
                     .frame(minHeight: 60, maxHeight: 120)
-            case .workflow:
-                EmptyView()
             }
         }
         .padding(.vertical, 4)
