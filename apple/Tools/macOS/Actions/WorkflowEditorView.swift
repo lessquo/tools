@@ -2,7 +2,6 @@ import SwiftUI
 
 struct WorkflowEditorView: View {
     @Binding var steps: [Action.Step]
-    @Environment(ActionStore.self) private var store
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -11,22 +10,12 @@ struct WorkflowEditorView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Menu {
-                    Button("Blank Step") { addBlankStep() }
-                    let actions = store.actions.filter { $0.type != .workflow }
-                    if !actions.isEmpty {
-                        Divider()
-                        ForEach(actions) { action in
-                            Button(action.name.isEmpty ? "Untitled" : action.name) {
-                                addStepFromAction(action)
-                            }
-                        }
-                    }
+                Button {
+                    addBlankStep()
                 } label: {
                     Image(systemName: "plus")
                 }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
+                .buttonStyle(.borderless)
             }
 
             if steps.isEmpty {
@@ -48,15 +37,6 @@ struct WorkflowEditorView: View {
 
     private func addBlankStep() {
         steps.append(Action.Step())
-    }
-
-    private func addStepFromAction(_ action: Action) {
-        steps.append(Action.Step(
-            name: action.name,
-            type: action.type,
-            prompt: action.prompt,
-            script: action.script
-        ))
     }
 
     private func availableVariables(before stepID: UUID) -> [String] {
