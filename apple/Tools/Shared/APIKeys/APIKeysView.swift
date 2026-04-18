@@ -18,6 +18,12 @@ struct APIKeysView: View {
                     }
                 }
             }
+
+            Section {
+                EmptyView()
+            } footer: {
+                Text("Stored in iCloud Keychain. Syncs across your devices signed into the same Apple ID.")
+            }
         }
         .formStyle(.grouped)
         .navigationTitle("API Keys")
