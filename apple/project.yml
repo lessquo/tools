@@ -55,12 +55,6 @@ targets:
     sources:
       - path: Tools/Shared
       - path: Tools/macOS
-    preBuildScripts:
-      - script: |
-          if [ "$CONFIGURATION" = "Debug" ]; then
-              tccutil reset Accessibility "$PRODUCT_BUNDLE_IDENTIFIER" || true
-          fi
-        name: Reset Accessibility Permission
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lessquo.tools
