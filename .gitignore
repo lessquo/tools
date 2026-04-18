@@ -30,3 +30,6 @@ DerivedData/
 # Secrets
 .env*
 *.key
+
+# Local signing config (per-developer team ID)
+apple/Local.xcconfig
