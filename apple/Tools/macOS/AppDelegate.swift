@@ -25,7 +25,7 @@ final class FeaturesState {
 
     init() {
         let defaults = UserDefaults.standard
-        defaults.register(defaults: [Self.dictationKey: true, Self.quickActionsKey: true])
+        defaults.register(defaults: [Self.dictationKey: false, Self.quickActionsKey: false])
         self.dictationEnabled = defaults.bool(forKey: Self.dictationKey)
         self.quickActionsEnabled = defaults.bool(forKey: Self.quickActionsKey)
     }
