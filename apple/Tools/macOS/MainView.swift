@@ -18,6 +18,7 @@ enum SidebarItem: String, CaseIterable {
     case quickstart = "Quickstart"
     case actions = "Actions"
     case models = "Models"
+    case apiKeys = "API Keys"
     case shortcuts = "Shortcuts"
 
     var systemImage: String {
@@ -25,6 +26,7 @@ enum SidebarItem: String, CaseIterable {
         case .quickstart: "sparkles"
         case .actions: "bolt"
         case .models: "cube"
+        case .apiKeys: "key"
         case .shortcuts: "command"
         }
     }
@@ -54,6 +56,8 @@ struct MainView: View {
                 ActionsView()
             case .models:
                 ModelsView()
+            case .apiKeys:
+                APIKeysView()
             case .shortcuts:
                 ShortcutsView()
             }

@@ -3,7 +3,7 @@ import Security
 
 @Observable
 @MainActor
-final class CloudStore {
+final class APIKeyStore {
 
     enum Provider: String, CaseIterable, Identifiable {
         case anthropic
@@ -103,7 +103,7 @@ final class CloudStore {
         let (data, response) = try await URLSession.shared.data(for: request)
         if let http = response as? HTTPURLResponse, http.statusCode >= 400 {
             throw NSError(
-                domain: "CloudStore", code: http.statusCode,
+                domain: "APIKeyStore", code: http.statusCode,
                 userInfo: [NSLocalizedDescriptionKey: "HTTP \(http.statusCode)"]
             )
         }

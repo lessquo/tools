@@ -13,7 +13,7 @@ struct ToolsApp: App {
                 .environment(appDelegate.myActionsState)
                 .environment(appDelegate.templatesState)
                 .environment(appDelegate.modelStore)
-                .environment(appDelegate.cloudStore)
+                .environment(appDelegate.apiKeyStore)
                 .environment(appDelegate.modelsState)
                 .environment(appDelegate.libraryState)
                 .environment(appDelegate.exploreState)
@@ -40,7 +40,7 @@ struct ToolsApp: App {
                         appDelegate.actionsState.selectedTab = appDelegate.actionsState.selectedTab.previous
                     case .models:
                         appDelegate.modelsState.selectedTab = appDelegate.modelsState.selectedTab.previous
-                    case .quickstart, .shortcuts:
+                    case .quickstart, .apiKeys, .shortcuts:
                         break
                     }
                 }
@@ -52,7 +52,7 @@ struct ToolsApp: App {
                         appDelegate.actionsState.selectedTab = appDelegate.actionsState.selectedTab.next
                     case .models:
                         appDelegate.modelsState.selectedTab = appDelegate.modelsState.selectedTab.next
-                    case .quickstart, .shortcuts:
+                    case .quickstart, .apiKeys, .shortcuts:
                         break
                     }
                 }

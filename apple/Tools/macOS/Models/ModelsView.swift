@@ -3,7 +3,6 @@ import SwiftUI
 enum ModelsTab: String, CaseIterable {
     case library = "Library"
     case explore = "Explore"
-    case cloud = "Cloud"
 }
 
 @Observable
@@ -21,7 +20,6 @@ struct ModelsView: View {
             switch state.selectedTab {
             case .library: LibraryView()
             case .explore: ExploreView()
-            case .cloud: CloudView()
             }
         }
         .navigationTitle("Models")
@@ -40,7 +38,6 @@ struct ModelsView: View {
 #Preview {
     ModelsView()
         .environment(ModelStore())
-        .environment(CloudStore())
         .environment(ModelsViewState())
         .environment(LibraryViewState())
         .environment(ExploreViewState())

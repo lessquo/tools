@@ -1,11 +1,11 @@
 import SwiftUI
 
-struct CloudView: View {
-    @Environment(CloudStore.self) private var store
+struct APIKeysView: View {
+    @Environment(APIKeyStore.self) private var store
 
     var body: some View {
         Form {
-            ForEach(CloudStore.Provider.allCases) { provider in
+            ForEach(APIKeyStore.Provider.allCases) { provider in
                 Section {
                     ProviderRow(provider: provider)
                 } header: {
@@ -20,14 +20,15 @@ struct CloudView: View {
             }
         }
         .formStyle(.grouped)
+        .navigationTitle("API Keys")
     }
 }
 
 private struct ProviderRow: View {
-    @Environment(CloudStore.self) private var store
+    @Environment(APIKeyStore.self) private var store
     @State private var isRevealed = false
     @FocusState private var isFieldFocused: Bool
-    let provider: CloudStore.Provider
+    let provider: APIKeyStore.Provider
 
     private var hasKey: Bool { !(store.apiKeys[provider] ?? "").isEmpty }
 
@@ -89,7 +90,7 @@ private struct ProviderRow: View {
 }
 
 private struct StatusIndicator: View {
-    let state: CloudStore.FetchState
+    let state: APIKeyStore.FetchState
 
     var body: some View {
         switch state {
@@ -110,6 +111,6 @@ private struct StatusIndicator: View {
 }
 
 #Preview {
-    CloudView()
-        .environment(CloudStore())
+    APIKeysView()
+        .environment(APIKeyStore())
 }
