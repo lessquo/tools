@@ -166,11 +166,11 @@ final class ActionService {
     // MARK: - Execution Primitives
 
     private func runLLM(prompt: String, onChunk: @escaping (String) -> Void) async throws -> String {
-        guard modelStore.isModelDownloaded(for: .actionPanel) else {
+        guard modelStore.isModelDownloaded(for: .quickActions) else {
             throw LLMRunError.noModel
         }
 
-        let modelID = modelStore.modelID(for: .actionPanel)
+        let modelID = modelStore.modelID(for: .quickActions)
         let modelDir = modelStore.modelDirectory(for: modelID)
         try await llm.loadModel(id: modelID, directory: modelDir)
 

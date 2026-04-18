@@ -29,33 +29,33 @@ final class ModelStore {
 
     enum Feature: String, CaseIterable, Hashable {
         case dictation
-        case actionPanel
+        case quickActions
 
         var pipelineTag: String {
             switch self {
             case .dictation: "automatic-speech-recognition"
-            case .actionPanel: "text-generation"
+            case .quickActions: "text-generation"
             }
         }
 
         var defaultsKey: String {
             switch self {
             case .dictation: "dictationModelID"
-            case .actionPanel: "actionPanelModelID"
+            case .quickActions: "quickActionsModelID"
             }
         }
 
         var label: String {
             switch self {
             case .dictation: "Dictation"
-            case .actionPanel: "Action Panel"
+            case .quickActions: "Quick Actions"
             }
         }
 
         var systemImage: String {
             switch self {
             case .dictation: "mic.fill"
-            case .actionPanel: "bolt.fill"
+            case .quickActions: "bolt.fill"
             }
         }
     }
@@ -77,8 +77,8 @@ final class ModelStore {
         didSet { UserDefaults.standard.set(dictationModelID, forKey: Feature.dictation.defaultsKey) }
     }
 
-    var actionPanelModelID: String {
-        didSet { UserDefaults.standard.set(actionPanelModelID, forKey: Feature.actionPanel.defaultsKey) }
+    var quickActionsModelID: String {
+        didSet { UserDefaults.standard.set(quickActionsModelID, forKey: Feature.quickActions.defaultsKey) }
     }
 
     // MARK: - Private
@@ -102,7 +102,7 @@ final class ModelStore {
         self.client = HubClient(cache: cache)
         let defaults = UserDefaults.standard
         self.dictationModelID = defaults.string(forKey: Feature.dictation.defaultsKey) ?? ""
-        self.actionPanelModelID = defaults.string(forKey: Feature.actionPanel.defaultsKey) ?? ""
+        self.quickActionsModelID = defaults.string(forKey: Feature.quickActions.defaultsKey) ?? ""
         scanDownloadedModels()
         Task {
             async let models: Void = fetchModels()
@@ -245,14 +245,14 @@ final class ModelStore {
     func modelID(for feature: Feature) -> String {
         switch feature {
         case .dictation: dictationModelID
-        case .actionPanel: actionPanelModelID
+        case .quickActions: quickActionsModelID
         }
     }
 
     func setModelID(_ id: String, for feature: Feature) {
         switch feature {
         case .dictation: dictationModelID = id
-        case .actionPanel: actionPanelModelID = id
+        case .quickActions: quickActionsModelID = id
         }
     }
 

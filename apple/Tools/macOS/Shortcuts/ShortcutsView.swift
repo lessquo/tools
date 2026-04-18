@@ -25,7 +25,7 @@ struct ShortcutsView: View {
         List {
             Section("Global") {
                 ShortcutRow("Hold to Dictate", keys: "fn")
-                ShortcutRow("Activate Action Panel", keys: "⌘ ;")
+                ShortcutRow("Activate Quick Actions", keys: "⌘ ;")
             }
             Section("Navigation") {
                 ShortcutRow("Previous Sidebar Item", keys: "⌥⌘ ↑")
@@ -33,7 +33,7 @@ struct ShortcutsView: View {
                 ShortcutRow("Previous Tab", keys: "⌥⌘ ←")
                 ShortcutRow("Next Tab", keys: "⌥⌘ →")
             }
-            Section("Action Panel") {
+            Section("Quick Actions") {
                 ShortcutRow("Dismiss", keys: "⎋")
                 ShortcutRow("Select Action by Number", keys: "1 – 9")
                 ShortcutRow("Navigate Up", keys: "↑")

@@ -19,7 +19,7 @@ struct QuickstartView: View {
             VStack(alignment: .leading, spacing: 28) {
                 featuresSection(
                     dictationEnabled: $featuresState.dictationEnabled,
-                    actionPanelEnabled: $featuresState.actionPanelEnabled
+                    quickActionsEnabled: $featuresState.quickActionsEnabled
                 )
             }
             .padding(28)
@@ -40,7 +40,7 @@ struct QuickstartView: View {
 
     private func featuresSection(
         dictationEnabled: Binding<Bool>,
-        actionPanelEnabled: Binding<Bool>
+        quickActionsEnabled: Binding<Bool>
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             QuickStartCard(
@@ -77,14 +77,14 @@ struct QuickstartView: View {
                 ))
             }
             QuickStartCard(
-                title: "Action Panel",
+                title: "Quick Actions",
                 description: "Press ⌘; to run an action on selected text from any app.",
                 systemImage: "bolt",
                 shortcut: "⌘ ;",
-                isEnabled: actionPanelEnabled
+                isEnabled: quickActionsEnabled
             ) {
                 ModelPickerRow(
-                    feature: .actionPanel,
+                    feature: .quickActions,
                     label: "Text-generation model",
                     openExplore: openExplore
                 )

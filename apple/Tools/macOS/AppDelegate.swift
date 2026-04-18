@@ -4,7 +4,7 @@ import AppKit
 @MainActor
 final class FeaturesState {
     private static let dictationKey = "dictation.enabled"
-    private static let actionPanelKey = "actionPanel.enabled"
+    private static let quickActionsKey = "quickActions.enabled"
 
     var dictationEnabled: Bool {
         didSet {
@@ -13,21 +13,21 @@ final class FeaturesState {
         }
     }
 
-    var actionPanelEnabled: Bool {
+    var quickActionsEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(actionPanelEnabled, forKey: Self.actionPanelKey)
-            onActionPanelChange?(actionPanelEnabled)
+            UserDefaults.standard.set(quickActionsEnabled, forKey: Self.quickActionsKey)
+            onQuickActionsChange?(quickActionsEnabled)
         }
     }
 
     @ObservationIgnored var onDictationChange: ((Bool) -> Void)?
-    @ObservationIgnored var onActionPanelChange: ((Bool) -> Void)?
+    @ObservationIgnored var onQuickActionsChange: ((Bool) -> Void)?
 
     init() {
         let defaults = UserDefaults.standard
-        defaults.register(defaults: [Self.dictationKey: true, Self.actionPanelKey: true])
+        defaults.register(defaults: [Self.dictationKey: true, Self.quickActionsKey: true])
         self.dictationEnabled = defaults.bool(forKey: Self.dictationKey)
-        self.actionPanelEnabled = defaults.bool(forKey: Self.actionPanelKey)
+        self.quickActionsEnabled = defaults.bool(forKey: Self.quickActionsKey)
     }
 }
 
@@ -46,18 +46,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let exploreState = ExploreViewState()
     let featuresState = FeaturesState()
     private let shortcutMonitor = ShortcutMonitor()
-    private var panel: ActionPanel?
+    private var quickActions: QuickActions?
     private var dictationService: DictationService?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let p = ActionPanel(llmService: llmService, modelStore: modelStore, actionStore: actionStore)
-        panel = p
-        shortcutMonitor.onActivate = { [weak p] in
-            p?.toggle()
+        let q = QuickActions(llmService: llmService, modelStore: modelStore, actionStore: actionStore)
+        quickActions = q
+        shortcutMonitor.onActivate = { [weak q] in
+            q?.toggle()
         }
         dictationService = DictationService(modelStore: modelStore)
 
-        featuresState.onActionPanelChange = { [weak self] enabled in
+        featuresState.onQuickActionsChange = { [weak self] enabled in
             if enabled {
                 self?.shortcutMonitor.start()
             } else {
@@ -72,10 +72,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        let startActionPanel = featuresState.actionPanelEnabled
+        let startQuickActions = featuresState.quickActionsEnabled
         let startDictation = featuresState.dictationEnabled
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            if startActionPanel { self?.shortcutMonitor.start() }
+            if startQuickActions { self?.shortcutMonitor.start() }
             if startDictation { self?.dictationService?.start() }
         }
     }
