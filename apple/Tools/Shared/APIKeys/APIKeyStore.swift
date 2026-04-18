@@ -50,6 +50,10 @@ final class APIKeyStore {
         apiKeys[provider] = key
     }
 
+    func reloadAPIKey(for provider: Provider) {
+        apiKeys[provider] = Keychain.read(provider.apiKeyName) ?? ""
+    }
+
     func saveAPIKey(for provider: Provider) {
         let key = apiKeys[provider] ?? ""
         if key.isEmpty {

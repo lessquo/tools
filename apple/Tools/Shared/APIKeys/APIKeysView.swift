@@ -18,15 +18,17 @@ struct APIKeysView: View {
                     }
                 }
             }
-
-            Section {
-                EmptyView()
-            } footer: {
-                Text("Stored in iCloud Keychain. Syncs across your devices signed into the same Apple ID.")
-            }
         }
         .formStyle(.grouped)
         .navigationTitle("API Keys")
+        .safeAreaInset(edge: .bottom) {
+            Text("Stored in iCloud Keychain. Syncs across your devices signed into the same Apple ID.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .padding()
+        }
     }
 }
 
@@ -48,6 +50,11 @@ private struct ProviderRow: View {
                     ))
                     .focused($isFieldFocused)
                     .onAppear { isFieldFocused = true }
+                    Button("Cancel", role: .cancel) {
+                        store.reloadAPIKey(for: provider)
+                        isRevealed = false
+                    }
+                    .keyboardShortcut(.cancelAction)
                     Button("Save") {
                         store.saveAPIKey(for: provider)
                         isRevealed = false
@@ -56,14 +63,17 @@ private struct ProviderRow: View {
                     .keyboardShortcut(.defaultAction)
                 }
             } else {
-                HStack {
-                    Text(provider.apiKeyName).foregroundStyle(.secondary)
-                    Spacer()
-                    StatusIndicator(state: store.fetchStates[provider] ?? .idle)
-                    Button(hasKey ? "Edit" : "Add") {
-                        isRevealed = true
+                Button {
+                    isRevealed = true
+                } label: {
+                    HStack {
+                        Text(provider.apiKeyName).foregroundStyle(.secondary)
+                        Spacer()
+                        StatusIndicator(state: store.fetchStates[provider] ?? .idle)
                     }
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
 
             if case .failed(let message) = store.fetchStates[provider] ?? .idle {
