@@ -114,14 +114,20 @@ final class APIKeyStore {
 enum Keychain {
     private static let service = Bundle.main.bundleIdentifier!
 
-    static func read(_ account: String) -> String? {
-        let query: [String: Any] = [
+    private static func baseQuery(_ account: String) -> [String: Any] {
+        [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecUseDataProtectionKeychain as String: true,
+            kSecAttrSynchronizable as String: kCFBooleanTrue!,
         ]
+    }
+
+    static func read(_ account: String) -> String? {
+        var query = baseQuery(account)
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         guard status == errSecSuccess, let data = result as? Data else { return nil }
@@ -130,28 +136,20 @@ enum Keychain {
 
     static func write(_ value: String, for account: String) {
         let data = Data(value.utf8)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
+        let query = baseQuery(account)
+        let attributes: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
         ]
-        let status = SecItemUpdate(
-            query as CFDictionary,
-            [kSecValueData as String: data] as CFDictionary
-        )
+        let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         if status == errSecItemNotFound {
             var addQuery = query
-            addQuery[kSecValueData as String] = data
+            for (k, v) in attributes { addQuery[k] = v }
             SecItemAdd(addQuery as CFDictionary, nil)
         }
     }
 
     static func delete(_ account: String) {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-        ]
-        SecItemDelete(query as CFDictionary)
+        SecItemDelete(baseQuery(account) as CFDictionary)
     }
 }

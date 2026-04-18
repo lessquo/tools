@@ -38,6 +38,9 @@ targets:
         product: HuggingFace
     entitlements:
       path: Tools/iOS/Tools.entitlements
+      properties:
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)
 
   Tools-macOS:
     type: application
@@ -76,3 +79,6 @@ targets:
         product: HuggingFace
     entitlements:
       path: Tools/macOS/Tools.entitlements
+      properties:
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)
