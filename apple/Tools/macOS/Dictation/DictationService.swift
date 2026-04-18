@@ -3,8 +3,17 @@ import Foundation
 /// Coordinates the push-to-talk dictation flow:
 /// fn down → show panel, load model, start capture
 /// fn up   → stop capture, transcribe, paste, close panel
+@Observable
 @MainActor
 final class DictationService {
+    private static let enabledKey = "dictation.enabled"
+
+    var isEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(isEnabled, forKey: Self.enabledKey)
+            applyEnabled()
+        }
+    }
 
     private let modelStore: ModelStore
     private let audio = AudioCaptureService()
@@ -19,15 +28,28 @@ final class DictationService {
         self.modelStore = modelStore
         self.panel = DictationPanel(audio: audio, stt: stt)
 
+        let defaults = UserDefaults.standard
+        defaults.register(defaults: [Self.enabledKey: false])
+        self.isEnabled = defaults.bool(forKey: Self.enabledKey)
+
         shortcut.onPress = { [weak self] in self?.beginDictation() }
         shortcut.onRelease = { [weak self] in self?.endDictation() }
     }
 
-    func start() {
+    /// Apply the persisted enabled state. Call once at app launch.
+    func launch() {
+        applyEnabled()
+    }
+
+    private func applyEnabled() {
+        if isEnabled { start() } else { stop() }
+    }
+
+    private func start() {
         shortcut.start()
     }
 
-    func stop() {
+    private func stop() {
         shortcut.stop()
         beginTask?.cancel()
         _ = audio.stop()

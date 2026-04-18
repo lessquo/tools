@@ -5,11 +5,11 @@ struct DictationView: View {
     @Environment(ModelsViewState.self) private var modelsState
     @Environment(ExploreViewState.self) private var exploreState
     @Environment(MainViewState.self) private var mainViewState
-    @Environment(FeaturesState.self) private var featuresState
+    @Environment(DictationService.self) private var dictationService
     @Environment(PermissionsService.self) private var permissions
 
     var body: some View {
-        @Bindable var featuresState = featuresState
+        @Bindable var dictationService = dictationService
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 QuickstartCard(
@@ -17,7 +17,7 @@ struct DictationView: View {
                     description: "Hold the fn key anywhere to dictate. Release to paste the transcript.",
                     systemImage: "mic",
                     shortcut: "fn",
-                    isEnabled: $featuresState.dictationEnabled
+                    isEnabled: $dictationService.isEnabled
                 ) {
                     ModelPickerRow(
                         feature: .dictation,
@@ -66,7 +66,7 @@ struct DictationView: View {
 
 #Preview {
     DictationView()
-        .environment(FeaturesState())
+        .environment(DictationService(modelStore: ModelStore()))
         .environment(MainViewState())
         .environment(ModelStore())
         .environment(ModelsViewState())

@@ -5,11 +5,11 @@ struct QuickActionsView: View {
     @Environment(ModelsViewState.self) private var modelsState
     @Environment(ExploreViewState.self) private var exploreState
     @Environment(MainViewState.self) private var mainViewState
-    @Environment(FeaturesState.self) private var featuresState
+    @Environment(QuickActionsService.self) private var quickActionsService
     @Environment(PermissionsService.self) private var permissions
 
     var body: some View {
-        @Bindable var featuresState = featuresState
+        @Bindable var quickActionsService = quickActionsService
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 QuickstartCard(
@@ -17,7 +17,7 @@ struct QuickActionsView: View {
                     description: "Press ⌘; to run an action on selected text from any app.",
                     systemImage: "bolt",
                     shortcut: "⌘ ;",
-                    isEnabled: $featuresState.quickActionsEnabled
+                    isEnabled: $quickActionsService.isEnabled
                 ) {
                     ModelPickerRow(
                         feature: .quickActions,
@@ -52,7 +52,11 @@ struct QuickActionsView: View {
 
 #Preview {
     QuickActionsView()
-        .environment(FeaturesState())
+        .environment(QuickActionsService(
+            llmService: LLMService(),
+            modelStore: ModelStore(),
+            actionStore: ActionStore()
+        ))
         .environment(MainViewState())
         .environment(ModelStore())
         .environment(ModelsViewState())
