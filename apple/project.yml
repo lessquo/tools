@@ -38,6 +38,10 @@ targets:
         LD_RUNPATH_SEARCH_PATHS:
           - $(inherited)
     dependencies:
+      - package: mlx-audio-swift
+        product: MLXAudioCore
+      - package: mlx-audio-swift
+        product: MLXAudioSTT
       - package: swift-huggingface
         product: HuggingFace
     entitlements:
