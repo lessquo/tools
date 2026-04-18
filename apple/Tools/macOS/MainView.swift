@@ -16,6 +16,7 @@ extension CaseIterable where Self: Equatable {
 
 enum SidebarItem: String, CaseIterable {
     case quickstart = "Quickstart"
+    case dictation = "Dictation"
     case actions = "Actions"
     case models = "Models"
     case apiKeys = "API Keys"
@@ -24,6 +25,7 @@ enum SidebarItem: String, CaseIterable {
     var systemImage: String {
         switch self {
         case .quickstart: "sparkles"
+        case .dictation: "mic"
         case .actions: "bolt"
         case .models: "cube"
         case .apiKeys: "key"
@@ -52,6 +54,8 @@ struct MainView: View {
             switch state.sidebarItem {
             case .quickstart:
                 QuickstartView()
+            case .dictation:
+                DictationView()
             case .actions:
                 ActionsView()
             case .models:

@@ -40,7 +40,7 @@ struct ToolsApp: App {
                         appDelegate.actionsState.selectedTab = appDelegate.actionsState.selectedTab.previous
                     case .models:
                         appDelegate.modelsState.selectedTab = appDelegate.modelsState.selectedTab.previous
-                    case .quickstart, .apiKeys, .shortcuts:
+                    case .quickstart, .dictation, .apiKeys, .shortcuts:
                         break
                     }
                 }
@@ -52,7 +52,7 @@ struct ToolsApp: App {
                         appDelegate.actionsState.selectedTab = appDelegate.actionsState.selectedTab.next
                     case .models:
                         appDelegate.modelsState.selectedTab = appDelegate.modelsState.selectedTab.next
-                    case .quickstart, .apiKeys, .shortcuts:
+                    case .quickstart, .dictation, .apiKeys, .shortcuts:
                         break
                     }
                 }
