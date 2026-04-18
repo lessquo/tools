@@ -1,5 +1,4 @@
 import AppKit
-@preconcurrency import ApplicationServices
 import Carbon.HIToolbox
 
 @MainActor
@@ -50,17 +49,6 @@ final class ClipboardService {
 
         keyDown.post(tap: .cghidEventTap)
         keyUp.post(tap: .cghidEventTap)
-    }
-
-    // MARK: - Accessibility
-
-    static func checkAccessibilityPermission() -> Bool {
-        AXIsProcessTrusted()
-    }
-
-    static func requestAccessibilityPermission() {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
-        AXIsProcessTrustedWithOptions(options)
     }
 }
 

@@ -16,7 +16,7 @@ final class HoldShortcutMonitor {
 
     func start() {
         guard eventTap == nil else { return }
-        guard ClipboardService.checkAccessibilityPermission() else {
+        guard PermissionsService.isAccessibilityGranted else {
             startPolling()
             return
         }
@@ -89,7 +89,7 @@ final class HoldShortcutMonitor {
                     self?.pollingTimer = nil
                     return
                 }
-                if ClipboardService.checkAccessibilityPermission() {
+                if PermissionsService.isAccessibilityGranted {
                     self.pollingTimer?.invalidate()
                     self.pollingTimer = nil
                     self.setupEventTap()

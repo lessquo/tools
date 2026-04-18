@@ -17,6 +17,7 @@ struct ToolsApp: App {
                 .environment(appDelegate.modelsState)
                 .environment(appDelegate.libraryState)
                 .environment(appDelegate.exploreState)
+                .environment(appDelegate.permissionsService)
         }
         .defaultSize(width: 1200, height: 700)
         .commands {

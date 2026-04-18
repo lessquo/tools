@@ -97,8 +97,8 @@ final class ActionService {
     // MARK: - Phased API (for panel)
 
     func copySelectedText() async -> String? {
-        guard ClipboardService.checkAccessibilityPermission() else {
-            ClipboardService.requestAccessibilityPermission()
+        guard PermissionsService.isAccessibilityGranted else {
+            PermissionsService.requestAccessibility()
             status = .error("Accessibility permission required")
             return nil
         }

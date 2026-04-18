@@ -1,5 +1,3 @@
-import AppKit
-import AVFAudio
 import HuggingFace
 import SwiftUI
 
@@ -9,9 +7,7 @@ struct QuickstartView: View {
     @Environment(ModelsViewState.self) private var modelsState
     @Environment(ExploreViewState.self) private var exploreState
     @Environment(FeaturesState.self) private var featuresState
-
-    @State private var accessibilityGranted = ClipboardService.checkAccessibilityPermission()
-    @State private var microphoneGranted = AVAudioApplication.shared.recordPermission == .granted
+    @Environment(PermissionsService.self) private var permissions
 
     var body: some View {
         @Bindable var featuresState = featuresState
@@ -27,13 +23,6 @@ struct QuickstartView: View {
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .navigationTitle("Quickstart")
-        .task {
-            refreshPermissions()
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(2))
-                refreshPermissions()
-            }
-        }
     }
 
     // MARK: - Sections
@@ -59,21 +48,21 @@ struct QuickstartView: View {
                     id: "accessibility",
                     label: "Accessibility access",
                     detail: "Used to detect the fn key across apps.",
-                    isReady: accessibilityGranted,
+                    isReady: permissions.isAccessibilityGranted,
                     actionLabel: "Grant",
                     readyActionLabel: "Settings",
-                    action: ClipboardService.requestAccessibilityPermission,
-                    readyAction: openAccessibilitySettings
+                    action: permissions.requestAccessibility,
+                    readyAction: permissions.openAccessibilitySettings
                 ))
                 RequirementRow(requirement: .init(
                     id: "microphone",
                     label: "Microphone access",
                     detail: "Used to capture your voice for transcription.",
-                    isReady: microphoneGranted,
+                    isReady: permissions.isMicrophoneGranted,
                     actionLabel: "Grant",
                     readyActionLabel: "Settings",
                     action: requestMicrophone,
-                    readyAction: openMicrophoneSettings
+                    readyAction: permissions.openMicrophoneSettings
                 ))
             }
             QuickstartCard(
@@ -92,11 +81,11 @@ struct QuickstartView: View {
                     id: "accessibility",
                     label: "Accessibility access",
                     detail: "Used to detect ⌘; across apps.",
-                    isReady: accessibilityGranted,
+                    isReady: permissions.isAccessibilityGranted,
                     actionLabel: "Grant",
                     readyActionLabel: "Settings",
-                    action: ClipboardService.requestAccessibilityPermission,
-                    readyAction: openAccessibilitySettings
+                    action: permissions.requestAccessibility,
+                    readyAction: permissions.openAccessibilitySettings
                 ))
             }
         }
@@ -111,38 +100,7 @@ struct QuickstartView: View {
     }
 
     private func requestMicrophone() {
-        // macOS only shows the system prompt while permission is .undetermined.
-        // Once denied, the user has to toggle it back in System Settings.
-        switch AVAudioApplication.shared.recordPermission {
-        case .undetermined:
-            Task {
-                _ = await AVAudioApplication.requestRecordPermission()
-                refreshPermissions()
-            }
-        case .denied:
-            openMicrophoneSettings()
-        case .granted:
-            break
-        @unknown default:
-            break
-        }
-    }
-
-    private func openAccessibilitySettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    private func openMicrophoneSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    private func refreshPermissions() {
-        accessibilityGranted = ClipboardService.checkAccessibilityPermission()
-        microphoneGranted = AVAudioApplication.shared.recordPermission == .granted
+        Task { await permissions.requestMicrophone() }
     }
 }
 
@@ -153,5 +111,6 @@ struct QuickstartView: View {
         .environment(ModelStore())
         .environment(ModelsViewState())
         .environment(ExploreViewState())
+        .environment(PermissionsService())
         .frame(width: 800, height: 700)
 }
