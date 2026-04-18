@@ -43,7 +43,7 @@ struct QuickstartView: View {
         actionPanelEnabled: Binding<Bool>
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            FeatureCard(
+            QuickStartCard(
                 title: "Dictation",
                 description: "Hold the fn key anywhere to dictate. Release to paste the transcript.",
                 systemImage: "mic",
@@ -76,7 +76,7 @@ struct QuickstartView: View {
                     readyAction: openMicrophoneSettings
                 ))
             }
-            FeatureCard(
+            QuickStartCard(
                 title: "Action Panel",
                 description: "Press ⌘; to run an action on selected text from any app.",
                 systemImage: "bolt",
@@ -148,7 +148,7 @@ struct QuickstartView: View {
 
 // MARK: - Subviews
 
-private struct FeatureCard<Rows: View>: View {
+private struct QuickStartCard<Rows: View>: View {
     let title: String
     let description: String
     let systemImage: String
