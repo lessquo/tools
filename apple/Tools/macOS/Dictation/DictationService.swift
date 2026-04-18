@@ -23,6 +23,7 @@ final class DictationService {
     private let panel: DictationPanel
 
     private var beginTask: Task<Void, Never>?
+    private var preloadTask: Task<Void, Never>?
 
     init(modelStore: ModelStore) {
         self.modelStore = modelStore
@@ -47,13 +48,34 @@ final class DictationService {
 
     private func start() {
         shortcut.start()
+        preloadModel()
     }
 
     private func stop() {
         shortcut.stop()
         beginTask?.cancel()
+        preloadTask?.cancel()
+        preloadTask = nil
         _ = audio.stop()
         panel.close()
+    }
+
+    private func preloadModel() {
+        let id = withObservationTracking {
+            modelStore.modelID(for: .dictation)
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, self.isEnabled else { return }
+                self.preloadModel()
+            }
+        }
+
+        preloadTask?.cancel()
+        guard !id.isEmpty else { return }
+        let directory = modelStore.modelDirectory(for: id)
+        preloadTask = Task { [stt] in
+            try? await stt.loadModel(id: id, directory: directory)
+        }
     }
 
     // MARK: - Flow
