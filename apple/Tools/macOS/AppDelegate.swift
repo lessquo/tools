@@ -47,12 +47,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let featuresState = FeaturesState()
     let permissionsService = PermissionsService()
     private let shortcutMonitor = ShortcutMonitor()
-    private var quickActions: QuickActions?
+    private var quickActions: QuickActionsPanel?
     private var dictationService: DictationService?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         permissionsService.startPolling()
-        let q = QuickActions(llmService: llmService, modelStore: modelStore, actionStore: actionStore)
+        let q = QuickActionsPanel(llmService: llmService, modelStore: modelStore, actionStore: actionStore)
         quickActions = q
         shortcutMonitor.onActivate = { [weak q] in
             q?.toggle()

@@ -7,7 +7,7 @@ private class KeyablePanel: NSPanel {
 }
 
 @MainActor
-final class QuickActions {
+final class QuickActionsPanel {
 
     private var panel: NSPanel?
     private var service: ActionService?
@@ -72,7 +72,7 @@ final class QuickActions {
         let service = ActionService(llm: llmService, modelStore: modelStore)
         self.service = service
 
-        let view = QuickActionsView(
+        let view = QuickActionsPanelView(
             service: service,
             onClose: { [weak self] in self?.close() },
             onDismiss: { [weak self] in self?.dismiss() },

@@ -15,8 +15,8 @@ extension CaseIterable where Self: Equatable {
 }
 
 enum SidebarItem: String, CaseIterable {
-    case quickstart = "Quickstart"
     case dictation = "Dictation"
+    case quickActions = "Quick Actions"
     case actions = "Actions"
     case models = "Models"
     case apiKeys = "API Keys"
@@ -24,8 +24,8 @@ enum SidebarItem: String, CaseIterable {
 
     var systemImage: String {
         switch self {
-        case .quickstart: "sparkles"
         case .dictation: "mic"
+        case .quickActions: "bolt.fill"
         case .actions: "bolt"
         case .models: "cube"
         case .apiKeys: "key"
@@ -37,7 +37,7 @@ enum SidebarItem: String, CaseIterable {
 @Observable
 @MainActor
 final class MainViewState {
-    var sidebarItem: SidebarItem = .quickstart
+    var sidebarItem: SidebarItem = .dictation
 }
 
 struct MainView: View {
@@ -52,10 +52,10 @@ struct MainView: View {
             .navigationSplitViewColumnWidth(min: 140, ideal: 160, max: 200)
         } detail: {
             switch state.sidebarItem {
-            case .quickstart:
-                QuickstartView()
             case .dictation:
                 DictationView()
+            case .quickActions:
+                QuickActionsView()
             case .actions:
                 ActionsView()
             case .models:
