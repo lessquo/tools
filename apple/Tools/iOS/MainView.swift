@@ -1,11 +1,14 @@
 import SwiftUI
 
-struct ContentView: View {
+struct MainView: View {
     var body: some View {
         NavigationStack {
             List {
                 NavigationLink("Models") {
                     ModelsView()
+                }
+                NavigationLink("API Keys") {
+                    APIKeysView()
                 }
                 NavigationLink("Settings") {
                     SettingsView()
@@ -17,5 +20,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    MainView()
 }
