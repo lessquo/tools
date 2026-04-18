@@ -66,24 +66,7 @@ private struct ProviderRow: View {
                 }
             }
 
-            switch store.fetchStates[provider] ?? .idle {
-            case .idle:
-                EmptyView()
-            case .loading:
-                HStack {
-                    ProgressView().controlSize(.small)
-                    Text("Loading models…").foregroundStyle(.secondary)
-                }
-            case .loaded:
-                let models = store.availableModels[provider] ?? []
-                if models.isEmpty {
-                    Text("No models available").foregroundStyle(.secondary)
-                } else {
-                    ForEach(models, id: \.self) { model in
-                        Text(model).monospaced()
-                    }
-                }
-            case .failed(let message):
+            if case .failed(let message) = store.fetchStates[provider] ?? .idle {
                 Text(message).foregroundStyle(.red)
             }
         }

@@ -37,7 +37,6 @@ final class APIKeyStore {
     }
 
     var apiKeys: [Provider: String] = [:]
-    var availableModels: [Provider: [String]] = [:]
     var fetchStates: [Provider: FetchState] = [:]
 
     init() {
@@ -63,17 +62,14 @@ final class APIKeyStore {
     func fetchModels(for provider: Provider) async {
         let key = apiKeys[provider] ?? ""
         guard !key.isEmpty else {
-            availableModels[provider] = []
             fetchStates[provider] = .idle
             return
         }
         fetchStates[provider] = .loading
         do {
-            let ids = try await performFetch(provider: provider, key: key)
-            availableModels[provider] = ids
+            _ = try await performFetch(provider: provider, key: key)
             fetchStates[provider] = .loaded
         } catch {
-            availableModels[provider] = []
             fetchStates[provider] = .failed(error.localizedDescription)
         }
     }
