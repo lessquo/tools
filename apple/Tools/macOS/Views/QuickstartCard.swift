@@ -95,8 +95,8 @@ struct ModelPickerRow: View {
     var body: some View {
         let downloaded = store.downloadedModels(for: feature)
         let selectedID = store.modelID(for: feature)
-        let selected = store.model(for: feature)
         let isReady = store.isModelDownloaded(for: feature)
+        let showApple = feature == .dictation
 
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Image(systemName: isReady ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
@@ -106,11 +106,23 @@ struct ModelPickerRow: View {
                 .font(.callout)
             Spacer(minLength: 8)
 
-            if downloaded.isEmpty {
+            if !showApple && downloaded.isEmpty {
                 Button("Install") { openExplore(feature.pipelineTag) }
                     .controlSize(.small)
             } else {
                 Menu {
+                    if showApple {
+                        Button {
+                            store.setModelID(STTService.appleSpeechID, for: feature)
+                        } label: {
+                            if selectedID == STTService.appleSpeechID {
+                                Label("Apple Speech", systemImage: "checkmark")
+                            } else {
+                                Text("Apple Speech")
+                            }
+                        }
+                        if !downloaded.isEmpty { Divider() }
+                    }
                     ForEach(downloaded, id: \.id) { model in
                         Button {
                             store.setModelID(model.id.rawValue, for: feature)
@@ -125,7 +137,7 @@ struct ModelPickerRow: View {
                     Divider()
                     Button("Browse more…") { openExplore(feature.pipelineTag) }
                 } label: {
-                    Text(selected?.id.name ?? "Select model")
+                    Text(store.displayName(for: feature))
                 }
                 .fixedSize()
                 .controlSize(.small)

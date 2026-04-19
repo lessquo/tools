@@ -82,9 +82,12 @@ final class DictationService {
 
         preloadTask?.cancel()
         guard !id.isEmpty else { return }
-        let directory = modelStore.modelDirectory(for: id)
-        preloadTask = Task { [stt] in
+        let directory: URL? = id == STTService.appleSpeechID ? nil : modelStore.modelDirectory(for: id)
+        preloadTask = Task { [stt, modelStore] in
             try? await stt.loadModel(id: id, directory: directory)
+            if id == STTService.appleSpeechID {
+                await modelStore.refreshAppleSpeechStatus()
+            }
         }
     }
 
@@ -94,7 +97,7 @@ final class DictationService {
         guard beginTask == nil else { return }
         let id = modelStore.modelID(for: .dictation)
         guard !id.isEmpty else { return }
-        let directory = modelStore.modelDirectory(for: id)
+        let directory: URL? = id == STTService.appleSpeechID ? nil : modelStore.modelDirectory(for: id)
 
         panel.show()
 
@@ -126,7 +129,7 @@ final class DictationService {
                 return
             }
 
-            let text = (try? await stt.transcribe(pcm: pcm)) ?? ""
+            let text = (try? await stt.transcribe(pcm: pcm, sampleRate: audio.sampleRate)) ?? ""
             panel.close()
 
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -1,6 +1,7 @@
 import AppKit
 @preconcurrency import ApplicationServices
 import AVFAudio
+import Speech
 
 @Observable
 @MainActor
@@ -13,6 +14,7 @@ final class PermissionsService {
 
     static var isAccessibilityGranted: Bool { AXIsProcessTrusted() }
     static var isMicrophoneGranted: Bool { AVAudioApplication.shared.recordPermission == .granted }
+    static var isSpeechRecognitionGranted: Bool { SFSpeechRecognizer.authorizationStatus() == .authorized }
 
     static func requestAccessibility() {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
@@ -42,6 +44,28 @@ final class PermissionsService {
         openSettings("Privacy_Microphone")
     }
 
+    @discardableResult
+    static func requestSpeechRecognition() async -> Bool {
+        switch SFSpeechRecognizer.authorizationStatus() {
+        case .authorized:
+            return true
+        case .notDetermined:
+            let status = await withCheckedContinuation { (c: CheckedContinuation<SFSpeechRecognizerAuthorizationStatus, Never>) in
+                SFSpeechRecognizer.requestAuthorization { c.resume(returning: $0) }
+            }
+            return status == .authorized
+        case .denied, .restricted:
+            openSpeechRecognitionSettings()
+            return false
+        @unknown default:
+            return false
+        }
+    }
+
+    static func openSpeechRecognitionSettings() {
+        openSettings("Privacy_SpeechRecognition")
+    }
+
     private static func openSettings(_ anchor: String) {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(anchor)") {
             NSWorkspace.shared.open(url)
@@ -52,12 +76,14 @@ final class PermissionsService {
 
     private(set) var isAccessibilityGranted: Bool
     private(set) var isMicrophoneGranted: Bool
+    private(set) var isSpeechRecognitionGranted: Bool
 
     @ObservationIgnored private var pollingTask: Task<Void, Never>?
 
     init() {
         self.isAccessibilityGranted = Self.isAccessibilityGranted
         self.isMicrophoneGranted = Self.isMicrophoneGranted
+        self.isSpeechRecognitionGranted = Self.isSpeechRecognitionGranted
     }
 
     deinit {
@@ -88,6 +114,10 @@ final class PermissionsService {
         if microphone != isMicrophoneGranted {
             isMicrophoneGranted = microphone
         }
+        let speech = Self.isSpeechRecognitionGranted
+        if speech != isSpeechRecognitionGranted {
+            isSpeechRecognitionGranted = speech
+        }
     }
 
     // Convenience wrappers that sync cached state after the call.
@@ -111,5 +141,18 @@ final class PermissionsService {
 
     func openMicrophoneSettings() {
         Self.openMicrophoneSettings()
+    }
+
+    @discardableResult
+    func requestSpeechRecognition() async -> Bool {
+        let granted = await Self.requestSpeechRecognition()
+        if granted != isSpeechRecognitionGranted {
+            isSpeechRecognitionGranted = granted
+        }
+        return granted
+    }
+
+    func openSpeechRecognitionSettings() {
+        Self.openSpeechRecognitionSettings()
     }
 }

@@ -2,8 +2,8 @@ name: Tools
 options:
   bundleIdPrefix: com.lessquo
   deploymentTarget:
-    macOS: "14.0"
-    iOS: "17.0"
+    macOS: "26.0"
+    iOS: "26.0"
 
 packages:
   mlx-audio-swift:

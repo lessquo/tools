@@ -49,6 +49,18 @@ struct DictationView: View {
                         action: requestMicrophone,
                         readyAction: permissions.openMicrophoneSettings
                     ))
+                    if modelStore.modelID(for: .dictation) == STTService.appleSpeechID {
+                        RequirementRow(requirement: .init(
+                            id: "speech-recognition",
+                            label: "Speech recognition access",
+                            detail: "Used by Apple Speech to transcribe audio on-device.",
+                            isReady: permissions.isSpeechRecognitionGranted,
+                            actionLabel: "Grant",
+                            readyActionLabel: "Settings",
+                            action: requestSpeechRecognition,
+                            readyAction: permissions.openSpeechRecognitionSettings
+                        ))
+                    }
                 }
             }
             .padding(28)
@@ -66,6 +78,10 @@ struct DictationView: View {
 
     private func requestMicrophone() {
         Task { await permissions.requestMicrophone() }
+    }
+
+    private func requestSpeechRecognition() {
+        Task { await permissions.requestSpeechRecognition() }
     }
 }
 

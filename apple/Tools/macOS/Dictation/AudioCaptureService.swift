@@ -19,6 +19,7 @@ final class AudioCaptureService {
     private var targetFormat: AVAudioFormat?
     private var buffer: [Float] = []
     private let targetSampleRate: Double = 16_000
+    var sampleRate: Double { targetSampleRate }
 
     func start() async throws {
         if case .recording = state { return }

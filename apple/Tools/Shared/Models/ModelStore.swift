@@ -97,18 +97,27 @@ final class ModelStore {
         return HubCache(cacheDirectory: modelsDir)
     }()
 
+    var isAppleSpeechInstalled: Bool = false
+
     init() {
         self.cache = Self.appCache
         self.client = HubClient(cache: cache)
         let defaults = UserDefaults.standard
-        self.dictationModelID = defaults.string(forKey: Feature.dictation.defaultsKey) ?? ""
+        let savedDictation = defaults.string(forKey: Feature.dictation.defaultsKey) ?? ""
+        self.dictationModelID = savedDictation.isEmpty ? STTService.appleSpeechID : savedDictation
         self.quickActionsModelID = defaults.string(forKey: Feature.quickActions.defaultsKey) ?? ""
         scanDownloadedModels()
         Task {
             async let models: Void = fetchModels()
             async let tags: Void = fetchPipelineTags()
-            _ = await (models, tags)
+            async let apple: Void = refreshAppleSpeechStatus()
+            _ = await (models, tags, apple)
         }
+    }
+
+    func refreshAppleSpeechStatus() async {
+        let installed = await AppleSpeechTranscriber.isLocaleInstalled()
+        self.isAppleSpeechInstalled = installed
     }
 
     // MARK: - Fetch
@@ -258,14 +267,21 @@ final class ModelStore {
 
     func model(for feature: Feature) -> HuggingFace.Model? {
         let id = modelID(for: feature)
-        guard !id.isEmpty else { return nil }
+        guard !id.isEmpty, id != STTService.appleSpeechID else { return nil }
         return downloadedModels.first { $0.id.rawValue == id }
             ?? models.first { $0.id.rawValue == id }
     }
 
     func isModelDownloaded(for feature: Feature) -> Bool {
         let id = modelID(for: feature)
+        if id == STTService.appleSpeechID { return isAppleSpeechInstalled }
         return !id.isEmpty && downloadStates[id] == .downloaded
+    }
+
+    func displayName(for feature: Feature) -> String {
+        let id = modelID(for: feature)
+        if id == STTService.appleSpeechID { return "Apple Speech" }
+        return model(for: feature)?.id.name ?? "Select model"
     }
 
     func features(selecting modelID: String) -> [Feature] {
