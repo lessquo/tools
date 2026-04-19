@@ -66,6 +66,10 @@ struct ExploreView: View {
                             .fixedSize()
                         }
                         .listRowSeparator(.hidden)
+                        if ParakeetGuidance.matches(state.searchText) {
+                            ParakeetGuidance()
+                                .listRowSeparator(.hidden)
+                        }
                         ForEach(filteredModels, id: \.id) { model in
                             ModelRow(model: model, onTagTap: { state.filterTag = $0 })
                         }

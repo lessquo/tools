@@ -27,6 +27,7 @@ struct DictationView: View {
                     ModelPickerRow(
                         feature: .dictation,
                         label: "Speech-to-text model",
+                        browseMoreLabel: "Browse Parakeet models…",
                         openExplore: openExplore
                     )
                     RequirementRow(requirement: .init(

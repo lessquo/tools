@@ -90,6 +90,7 @@ struct ModelPickerRow: View {
 
     let feature: ModelStore.Feature
     let label: String
+    var browseMoreLabel: String = "Browse more…"
     let openExplore: () -> Void
 
     var body: some View {
@@ -135,7 +136,7 @@ struct ModelPickerRow: View {
                         }
                     }
                     Divider()
-                    Button("Browse more…") { openExplore() }
+                    Button(browseMoreLabel) { openExplore() }
                 } label: {
                     Text(store.displayName(for: feature))
                 }

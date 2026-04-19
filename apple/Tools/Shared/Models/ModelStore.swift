@@ -295,7 +295,11 @@ final class ModelStore {
     }
 
     func downloadedModels(for feature: Feature) -> [HuggingFace.Model] {
-        downloadedModels.filter { $0.pipelineTag == feature.pipelineTag }
+        downloadedModels.filter {
+            guard $0.pipelineTag == feature.pipelineTag else { return false }
+            if feature == .dictation { return $0.id.name.lowercased().contains("parakeet") }
+            return true
+        }
     }
 
     func scanDownloadedModels() {
