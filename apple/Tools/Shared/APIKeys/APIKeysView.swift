@@ -77,7 +77,17 @@ private struct ProviderRow: View {
             }
 
             if case .failed(let message) = store.fetchStates[provider] ?? .idle {
-                Text(message).foregroundStyle(.red)
+                HStack {
+                    Text(message).foregroundStyle(.red)
+                    Spacer()
+                    Button {
+                        Task { await store.fetchModels(for: provider) }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Refresh")
+                }
             }
         }
         .task {
