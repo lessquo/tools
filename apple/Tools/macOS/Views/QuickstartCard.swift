@@ -90,7 +90,7 @@ struct ModelPickerRow: View {
 
     let feature: ModelStore.Feature
     let label: String
-    let openExplore: (String) -> Void
+    let openExplore: () -> Void
 
     var body: some View {
         let downloaded = store.downloadedModels(for: feature)
@@ -107,7 +107,7 @@ struct ModelPickerRow: View {
             Spacer(minLength: 8)
 
             if !showApple && downloaded.isEmpty {
-                Button("Install") { openExplore(feature.pipelineTag) }
+                Button("Install") { openExplore() }
                     .controlSize(.small)
             } else {
                 Menu {
@@ -135,7 +135,7 @@ struct ModelPickerRow: View {
                         }
                     }
                     Divider()
-                    Button("Browse more…") { openExplore(feature.pipelineTag) }
+                    Button("Browse more…") { openExplore() }
                 } label: {
                     Text(store.displayName(for: feature))
                 }

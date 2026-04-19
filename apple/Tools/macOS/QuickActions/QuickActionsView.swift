@@ -48,8 +48,9 @@ struct QuickActionsView: View {
         .navigationTitle("Quick Actions")
     }
 
-    private func openExplore(filterTag: String) {
-        exploreState.filterTag = filterTag
+    private func openExplore() {
+        exploreState.filterTag = ModelStore.Feature.quickActions.pipelineTag
+        exploreState.searchText = ""
         modelsState.selectedTab = .explore
         mainViewState.sidebarItem = .models
     }

@@ -70,8 +70,9 @@ struct DictationView: View {
         .navigationTitle("Dictation")
     }
 
-    private func openExplore(filterTag: String) {
-        exploreState.filterTag = filterTag
+    private func openExplore() {
+        exploreState.filterTag = ""
+        exploreState.searchText = "parakeet"
         modelsState.selectedTab = .explore
         mainViewState.sidebarItem = .models
     }
