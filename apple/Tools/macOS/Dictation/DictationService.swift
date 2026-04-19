@@ -7,6 +7,7 @@ import Foundation
 @MainActor
 final class DictationService {
     private static let enabledKey = "dictation.enabled"
+    private static let shortcutKey = "dictation.shortcut"
 
     var isEnabled: Bool {
         didSet {
@@ -15,10 +16,17 @@ final class DictationService {
         }
     }
 
+    var shortcut: Shortcut {
+        didSet {
+            shortcut.save(forKey: Self.shortcutKey)
+            applyShortcut()
+        }
+    }
+
     private let modelStore: ModelStore
     private let audio = AudioCaptureService()
     private let stt = STTService()
-    private let shortcut = HoldShortcutMonitor()
+    private let monitor = ShortcutMonitor()
     private let clipboard = ClipboardService()
     private let panel: DictationPanel
 
@@ -32,9 +40,10 @@ final class DictationService {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [Self.enabledKey: false])
         self.isEnabled = defaults.bool(forKey: Self.enabledKey)
+        self.shortcut = Shortcut.load(forKey: Self.shortcutKey, default: .dictationDefault)
 
-        shortcut.onPress = { [weak self] in self?.beginDictation() }
-        shortcut.onRelease = { [weak self] in self?.endDictation() }
+        monitor.onPress = { [weak self] in self?.beginDictation() }
+        monitor.onRelease = { [weak self] in self?.endDictation() }
     }
 
     /// Apply the persisted enabled state. Call once at app launch.
@@ -46,13 +55,18 @@ final class DictationService {
         if isEnabled { start() } else { stop() }
     }
 
+    private func applyShortcut() {
+        guard isEnabled else { return }
+        monitor.start(shortcut)
+    }
+
     private func start() {
-        shortcut.start()
+        monitor.start(shortcut)
         preloadModel()
     }
 
     private func stop() {
-        shortcut.stop()
+        monitor.stop()
         beginTask?.cancel()
         preloadTask?.cancel()
         preloadTask = nil

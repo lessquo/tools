@@ -14,11 +14,16 @@ struct DictationView: View {
             VStack(alignment: .leading, spacing: 12) {
                 QuickstartCard(
                     title: "Dictation",
-                    description: "Hold the fn key anywhere to dictate. Release to paste the transcript.",
+                    description: "Hold the shortcut anywhere to dictate. Release to paste the transcript.",
                     systemImage: "mic",
-                    shortcut: "fn",
+                    shortcut: dictationService.shortcut.display,
                     isEnabled: $dictationService.isEnabled
                 ) {
+                    ShortcutSettingRow(
+                        shortcut: $dictationService.shortcut,
+                        lockedMode: .hold,
+                        defaultShortcut: .dictationDefault
+                    )
                     ModelPickerRow(
                         feature: .dictation,
                         label: "Speech-to-text model",
@@ -27,7 +32,7 @@ struct DictationView: View {
                     RequirementRow(requirement: .init(
                         id: "accessibility",
                         label: "Accessibility access",
-                        detail: "Used to detect the fn key across apps.",
+                        detail: "Used to detect the shortcut across apps.",
                         isReady: permissions.isAccessibilityGranted,
                         actionLabel: "Grant",
                         readyActionLabel: "Settings",

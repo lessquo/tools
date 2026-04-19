@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 final class QuickActionsService {
     private static let enabledKey = "quickActions.enabled"
+    private static let shortcutKey = "quickActions.shortcut"
 
     var isEnabled: Bool {
         didSet {
@@ -12,7 +13,14 @@ final class QuickActionsService {
         }
     }
 
-    private let shortcut = ShortcutMonitor()
+    var shortcut: Shortcut {
+        didSet {
+            shortcut.save(forKey: Self.shortcutKey)
+            applyShortcut()
+        }
+    }
+
+    private let monitor = ShortcutMonitor()
     private let panel: QuickActionsPanel
 
     init(llmService: LLMService, modelStore: ModelStore, actionStore: ActionStore) {
@@ -24,7 +32,8 @@ final class QuickActionsService {
         let defaults = UserDefaults.standard
         defaults.register(defaults: [Self.enabledKey: false])
         self.isEnabled = defaults.bool(forKey: Self.enabledKey)
-        shortcut.onActivate = { [weak self] in self?.panel.toggle() }
+        self.shortcut = Shortcut.load(forKey: Self.shortcutKey, default: .quickActionsDefault)
+        monitor.onActivate = { [weak self] in self?.panel.toggle() }
     }
 
     /// Apply the persisted enabled state. Call once at app launch.
@@ -33,6 +42,11 @@ final class QuickActionsService {
     }
 
     private func applyEnabled() {
-        if isEnabled { shortcut.start() } else { shortcut.stop() }
+        if isEnabled { monitor.start(shortcut) } else { monitor.stop() }
+    }
+
+    private func applyShortcut() {
+        guard isEnabled else { return }
+        monitor.start(shortcut)
     }
 }

@@ -14,11 +14,16 @@ struct QuickActionsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 QuickstartCard(
                     title: "Quick Actions",
-                    description: "Press ⌘; to run an action on selected text from any app.",
+                    description: "Press the shortcut to run an action on selected text from any app.",
                     systemImage: "bolt",
-                    shortcut: "⌘ ;",
+                    shortcut: quickActionsService.shortcut.display,
                     isEnabled: $quickActionsService.isEnabled
                 ) {
+                    ShortcutSettingRow(
+                        shortcut: $quickActionsService.shortcut,
+                        lockedMode: .tap,
+                        defaultShortcut: .quickActionsDefault
+                    )
                     ModelPickerRow(
                         feature: .quickActions,
                         label: "Text-generation model",
@@ -27,7 +32,7 @@ struct QuickActionsView: View {
                     RequirementRow(requirement: .init(
                         id: "accessibility",
                         label: "Accessibility access",
-                        detail: "Used to detect ⌘; across apps.",
+                        detail: "Used to detect the shortcut across apps.",
                         isReady: permissions.isAccessibilityGranted,
                         actionLabel: "Grant",
                         readyActionLabel: "Settings",

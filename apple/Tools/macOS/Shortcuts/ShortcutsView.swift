@@ -21,11 +21,14 @@ struct ShortcutRow: View {
 }
 
 struct ShortcutsView: View {
+    @Environment(DictationService.self) private var dictationService
+    @Environment(QuickActionsService.self) private var quickActionsService
+
     var body: some View {
         List {
             Section("Global") {
-                ShortcutRow("Hold to Dictate", keys: "fn")
-                ShortcutRow("Activate Quick Actions", keys: "⌘ ;")
+                ShortcutRow("Hold to Dictate", keys: dictationService.shortcut.display)
+                ShortcutRow("Activate Quick Actions", keys: quickActionsService.shortcut.display)
             }
             Section("Navigation") {
                 ShortcutRow("Previous Sidebar Item", keys: "⌥⌘ ↑")
