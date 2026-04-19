@@ -35,7 +35,7 @@ struct QuickActionsView: View {
                         },
                         openExplore: openExplore
                     )
-                    RequirementRow(requirement: .init(
+                    QuickstartPermission(requirement: .init(
                         id: "accessibility",
                         label: "Accessibility access",
                         detail: "Used to detect the shortcut across apps.",

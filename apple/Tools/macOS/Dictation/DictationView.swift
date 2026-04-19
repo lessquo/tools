@@ -39,7 +39,7 @@ struct DictationView: View {
                         browseMoreLabel: "Browse Parakeet models…",
                         openExplore: openExplore
                     )
-                    RequirementRow(requirement: .init(
+                    QuickstartPermission(requirement: .init(
                         id: "accessibility",
                         label: "Accessibility access",
                         detail: "Used to detect the shortcut across apps.",
@@ -49,7 +49,7 @@ struct DictationView: View {
                         action: permissions.requestAccessibility,
                         readyAction: permissions.openAccessibilitySettings
                     ))
-                    RequirementRow(requirement: .init(
+                    QuickstartPermission(requirement: .init(
                         id: "microphone",
                         label: "Microphone access",
                         detail: "Used to capture your voice for transcription.",
@@ -60,7 +60,7 @@ struct DictationView: View {
                         readyAction: permissions.openMicrophoneSettings
                     ))
                     if dictationService.modelID == STTService.appleSpeechID {
-                        RequirementRow(requirement: .init(
+                        QuickstartPermission(requirement: .init(
                             id: "speech-recognition",
                             label: "Speech recognition access",
                             detail: "Used by Apple Speech to transcribe audio on-device.",
