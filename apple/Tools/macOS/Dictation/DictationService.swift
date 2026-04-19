@@ -27,7 +27,7 @@ final class DictationService {
 
     private let modelStore: ModelStore
     private let audio = AudioCaptureService()
-    private let stt = STTService()
+    private let stt: STTService
     private let monitor = ShortcutMonitor()
     private let clipboard = ClipboardService()
     private let panel: DictationPanel
@@ -37,6 +37,8 @@ final class DictationService {
 
     init(modelStore: ModelStore) {
         self.modelStore = modelStore
+        let stt = STTService(modelStore: modelStore)
+        self.stt = stt
         self.panel = DictationPanel(audio: audio, stt: stt)
 
         let defaults = UserDefaults.standard
@@ -89,9 +91,8 @@ final class DictationService {
 
         preloadTask?.cancel()
         guard !id.isEmpty else { return }
-        let directory: URL? = id == STTService.appleSpeechID ? nil : modelStore.modelDirectory(for: id)
         preloadTask = Task { [stt, modelStore] in
-            try? await stt.loadModel(id: id, directory: directory)
+            try? await stt.loadModel(id: id)
             if id == STTService.appleSpeechID {
                 await modelStore.refreshAppleSpeechStatus()
             }
@@ -104,13 +105,12 @@ final class DictationService {
         guard beginTask == nil else { return }
         let id = modelID
         guard !id.isEmpty else { return }
-        let directory: URL? = id == STTService.appleSpeechID ? nil : modelStore.modelDirectory(for: id)
 
         panel.show()
 
         beginTask = Task { [stt, audio, panel] in
             do {
-                try await stt.loadModel(id: id, directory: directory)
+                try await stt.loadModel(id: id)
                 try Task.checkCancellation()
                 try await audio.start()
             } catch {

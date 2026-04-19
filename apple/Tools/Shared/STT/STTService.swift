@@ -22,12 +22,17 @@ final class STTService {
     private(set) var state: State = .idle
     private var backend: (any Backend)?
     private var loadedModelID: String?
+    private let modelStore: ModelStore
 
-    func loadModel(id: String, directory: URL?) async throws {
+    init(modelStore: ModelStore) {
+        self.modelStore = modelStore
+    }
+
+    func loadModel(id: String) async throws {
         if loadedModelID == id, backend != nil { return }
         state = .loading
         do {
-            backend = try await Self.makeBackend(id: id, directory: directory)
+            backend = try await makeBackend(id: id)
             loadedModelID = id
             state = .ready
         } catch {
@@ -46,13 +51,11 @@ final class STTService {
         return try await backend.transcribe(pcm: pcm, sampleRate: sampleRate)
     }
 
-    private static func makeBackend(id: String, directory: URL?) async throws -> any Backend {
-        if id == appleSpeechID {
+    private func makeBackend(id: String) async throws -> any Backend {
+        if id == Self.appleSpeechID {
             return try await AppleSpeechBackend()
         }
-
-        guard let directory else { throw STTServiceError.modelNotLoaded }
-        return try ParakeetBackend(directory: directory)
+        return try ParakeetBackend(directory: modelStore.modelDirectory(for: id))
     }
 }
 
