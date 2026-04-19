@@ -24,10 +24,18 @@ struct DictationView: View {
                         lockedMode: .hold,
                         defaultShortcut: .dictationDefault
                     )
-                    ModelPickerRow(
-                        feature: .dictation,
+                    QuickstartModel(
                         selectedID: $dictationService.modelID,
                         label: "Speech-to-text model",
+                        displayName: modelStore.displayName(id: dictationService.modelID),
+                        isReady: modelStore.isModelDownloaded(id: dictationService.modelID),
+                        primaryOption: QuickstartModelOption(
+                            id: STTService.appleSpeechID,
+                            name: "Apple Speech"
+                        ),
+                        options: modelStore.downloadedModels(for: .dictation).map {
+                            QuickstartModelOption(id: $0.id.rawValue, name: $0.id.name)
+                        },
                         browseMoreLabel: "Browse Parakeet models…",
                         openExplore: openExplore
                     )

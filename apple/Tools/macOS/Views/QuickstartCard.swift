@@ -85,68 +85,6 @@ struct RequirementRow: View {
     }
 }
 
-struct ModelPickerRow: View {
-    @Environment(ModelStore.self) private var store
-
-    let feature: ModelStore.Feature
-    @Binding var selectedID: String
-    let label: String
-    var browseMoreLabel: String = "Browse more…"
-    let openExplore: () -> Void
-
-    var body: some View {
-        let downloaded = store.downloadedModels(for: feature)
-        let isReady = store.isModelDownloaded(id: selectedID)
-        let showApple = feature == .dictation
-
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Image(systemName: isReady ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                .foregroundStyle(isReady ? .green : .orange)
-                .font(.footnote)
-            Text(label)
-                .font(.callout)
-            Spacer(minLength: 8)
-
-            if !showApple && downloaded.isEmpty {
-                Button("Install") { openExplore() }
-                    .controlSize(.small)
-            } else {
-                Menu {
-                    if showApple {
-                        Button {
-                            selectedID = STTService.appleSpeechID
-                        } label: {
-                            if selectedID == STTService.appleSpeechID {
-                                Label("Apple Speech", systemImage: "checkmark")
-                            } else {
-                                Text("Apple Speech")
-                            }
-                        }
-                        if !downloaded.isEmpty { Divider() }
-                    }
-                    ForEach(downloaded, id: \.id) { model in
-                        Button {
-                            selectedID = model.id.rawValue
-                        } label: {
-                            if model.id.rawValue == selectedID {
-                                Label(model.id.name, systemImage: "checkmark")
-                            } else {
-                                Text(model.id.name)
-                            }
-                        }
-                    }
-                    Divider()
-                    Button(browseMoreLabel) { openExplore() }
-                } label: {
-                    Text(store.displayName(id: selectedID))
-                }
-                .fixedSize()
-                .controlSize(.small)
-            }
-        }
-    }
-}
-
 private extension View {
     func cardBackground() -> some View {
         background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
