@@ -41,16 +41,10 @@ struct QuickstartCard<Rows: View>: View {
                 .controlSize(.small)
         }
         .padding(16)
-        .cardBackground()
-    }
-}
-
-private extension View {
-    func cardBackground() -> some View {
-        background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .strokeBorder(.separator)
-            )
+        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(.separator)
+        )
     }
 }
