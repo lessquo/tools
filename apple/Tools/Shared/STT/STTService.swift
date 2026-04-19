@@ -1,6 +1,4 @@
 import Foundation
-import MLX
-import MLXAudioSTT
 
 @Observable
 @MainActor
@@ -16,20 +14,15 @@ final class STTService {
         case error(String)
     }
 
-    private enum Backend {
-        case apple(AppleSpeechTranscriber)
-        case parakeet(ParakeetModel)
-    }
-
     private(set) var state: State = .idle
-    private var backend: Backend?
+    private var transcriber: (any Transcriber)?
     private var loadedModelID: String?
 
     func loadModel(id: String, directory: URL?) async throws {
-        if loadedModelID == id, backend != nil { return }
+        if loadedModelID == id, transcriber != nil { return }
         state = .loading
         do {
-            backend = try await Self.makeBackend(id: id, directory: directory)
+            transcriber = try await Self.makeTranscriber(id: id, directory: directory)
             loadedModelID = id
             state = .ready
         } catch {
@@ -39,31 +32,24 @@ final class STTService {
     }
 
     func transcribe(pcm: [Float], sampleRate: Double) async throws -> String {
-        guard let backend else { throw STTServiceError.modelNotLoaded }
+        guard let transcriber else { throw STTServiceError.modelNotLoaded }
         guard !pcm.isEmpty else { return "" }
 
         state = .transcribing
         defer { state = .ready }
 
-        switch backend {
-        case .apple(let transcriber):
-            return try await transcriber.transcribe(pcm: pcm, sampleRate: sampleRate)
-        case .parakeet(let model):
-            let audio = MLXArray(pcm)
-            return model.generate(audio: audio).text
-        }
+        return try await transcriber.transcribe(pcm: pcm, sampleRate: sampleRate)
     }
 
-    private static func makeBackend(id: String, directory: URL?) async throws -> Backend {
+    private static func makeTranscriber(id: String, directory: URL?) async throws -> any Transcriber {
         if id == appleSpeechID {
-            let transcriber = AppleSpeechTranscriber()
-            try await transcriber.prepare()
-            return .apple(transcriber)
+            let apple = AppleSpeechTranscriber()
+            try await apple.prepare()
+            return apple
         }
 
         guard let directory else { throw STTServiceError.modelNotLoaded }
-        let model = try ParakeetModel.fromDirectory(directory)
-        return .parakeet(model)
+        return try ParakeetTranscriber(directory: directory)
     }
 }
 

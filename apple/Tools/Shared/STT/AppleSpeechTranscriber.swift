@@ -3,7 +3,7 @@ import Foundation
 import Speech
 
 @MainActor
-final class AppleSpeechTranscriber {
+final class AppleSpeechTranscriber: Transcriber {
 
     private var locale: Locale?
 
