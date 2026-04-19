@@ -6,6 +6,11 @@ final class STTService {
 
     static let appleSpeechID = "apple:speech"
 
+    @MainActor
+    protocol Backend {
+        func transcribe(pcm: [Float], sampleRate: Double) async throws -> String
+    }
+
     enum State: Equatable {
         case idle
         case loading
@@ -15,14 +20,14 @@ final class STTService {
     }
 
     private(set) var state: State = .idle
-    private var transcriber: (any Transcriber)?
+    private var backend: (any Backend)?
     private var loadedModelID: String?
 
     func loadModel(id: String, directory: URL?) async throws {
-        if loadedModelID == id, transcriber != nil { return }
+        if loadedModelID == id, backend != nil { return }
         state = .loading
         do {
-            transcriber = try await Self.makeTranscriber(id: id, directory: directory)
+            backend = try await Self.makeBackend(id: id, directory: directory)
             loadedModelID = id
             state = .ready
         } catch {
@@ -32,24 +37,24 @@ final class STTService {
     }
 
     func transcribe(pcm: [Float], sampleRate: Double) async throws -> String {
-        guard let transcriber else { throw STTServiceError.modelNotLoaded }
+        guard let backend else { throw STTServiceError.modelNotLoaded }
         guard !pcm.isEmpty else { return "" }
 
         state = .transcribing
         defer { state = .ready }
 
-        return try await transcriber.transcribe(pcm: pcm, sampleRate: sampleRate)
+        return try await backend.transcribe(pcm: pcm, sampleRate: sampleRate)
     }
 
-    private static func makeTranscriber(id: String, directory: URL?) async throws -> any Transcriber {
+    private static func makeBackend(id: String, directory: URL?) async throws -> any Backend {
         if id == appleSpeechID {
-            let apple = AppleSpeechTranscriber()
+            let apple = AppleSpeechBackend()
             try await apple.prepare()
             return apple
         }
 
         guard let directory else { throw STTServiceError.modelNotLoaded }
-        return try ParakeetTranscriber(directory: directory)
+        return try ParakeetBackend(directory: directory)
     }
 }
 

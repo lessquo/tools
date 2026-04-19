@@ -83,7 +83,7 @@ final class ModelStore {
     }
 
     func refreshAppleSpeechStatus() async {
-        let installed = await AppleSpeechTranscriber.isLocaleInstalled()
+        let installed = await AppleSpeechBackend.isLocaleInstalled()
         self.isAppleSpeechInstalled = installed
     }
 
