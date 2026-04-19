@@ -1,9 +1,6 @@
 import AppKit
 import SwiftUI
 
-/// Floating, non-activating HUD panel for push-to-talk dictation.
-/// Does NOT steal focus: the target text field stays first responder
-/// so the synthesized ⌘V lands in the right place.
 @MainActor
 final class DictationPanel {
 

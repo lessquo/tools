@@ -2,7 +2,6 @@ import SwiftUI
 import AppKit
 import Carbon.HIToolbox
 
-/// Row matching the layout used in `QuickstartCard` rows (icon + label + trailing recorder).
 struct ShortcutSettingRow: View {
     @Binding var shortcut: Shortcut
     var lockedMode: Shortcut.Mode? = nil
@@ -25,10 +24,8 @@ struct ShortcutSettingRow: View {
     }
 }
 
-/// Captures a new `Shortcut` when focused. Displays the current glyph when idle.
 struct ShortcutRecorder: View {
     @Binding var shortcut: Shortcut
-    /// If set, only this mode is allowed — the mode picker is hidden and captures are forced to it.
     var lockedMode: Shortcut.Mode? = nil
     var defaultShortcut: Shortcut
 
@@ -96,7 +93,6 @@ private struct RecorderField: View {
     }
 }
 
-/// Host for an `NSEvent` local monitor; captures while `isRecording` is true.
 private struct ShortcutCaptureRep: NSViewRepresentable {
     @Binding var isRecording: Bool
     let onCapture: (Shortcut) -> Void

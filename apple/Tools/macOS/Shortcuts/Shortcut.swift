@@ -5,9 +5,7 @@ import CoreGraphics
 struct Shortcut: Codable, Equatable {
     enum Mode: String, Codable { case tap, hold }
 
-    /// Carbon virtual key code (e.g. `kVK_ANSI_Semicolon`). `nil` means modifier-only (e.g. fn alone).
     var keyCode: Int?
-    /// Raw `CGEventFlags` bits, masked to `Shortcut.trackedModifierMask`.
     var modifiers: UInt64
     var mode: Mode
 
@@ -23,7 +21,6 @@ struct Shortcut: Codable, Equatable {
         mode: .tap
     )
 
-    /// Bits we consider when matching. Filters out device-dependent flag noise.
     static let trackedModifierMask: UInt64 =
         CGEventFlags.maskCommand.rawValue |
         CGEventFlags.maskAlternate.rawValue |
@@ -54,7 +51,6 @@ extension Shortcut {
 // MARK: - Display
 
 extension Shortcut {
-    /// Human-readable glyph string (e.g. "⌘;", "fn", "⌃⌥A").
     var display: String {
         var parts: [String] = []
         let flags = CGEventFlags(rawValue: modifiers)

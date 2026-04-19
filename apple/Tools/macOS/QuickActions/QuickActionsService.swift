@@ -36,7 +36,6 @@ final class QuickActionsService {
         monitor.onActivate = { [weak self] in self?.panel.toggle() }
     }
 
-    /// Apply the persisted enabled state. Call once at app launch.
     func launch() {
         applyEnabled()
     }

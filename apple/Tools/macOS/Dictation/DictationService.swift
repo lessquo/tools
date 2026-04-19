@@ -1,8 +1,5 @@
 import Foundation
 
-/// Coordinates the push-to-talk dictation flow:
-/// fn down → show panel, load model, start capture
-/// fn up   → stop capture, transcribe, paste, close panel
 @Observable
 @MainActor
 final class DictationService {
@@ -46,7 +43,6 @@ final class DictationService {
         monitor.onRelease = { [weak self] in self?.endDictation() }
     }
 
-    /// Apply the persisted enabled state. Call once at app launch.
     func launch() {
         applyEnabled()
     }

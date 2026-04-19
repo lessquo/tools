@@ -2,9 +2,6 @@ import Foundation
 @preconcurrency import ApplicationServices
 import Carbon.HIToolbox
 
-/// Watches a configurable global shortcut. Supports both tap (fire on key down)
-/// and hold (fire press/release) modes, including modifier-only shortcuts like `fn`.
-/// Requires the Accessibility permission; falls back to polling until granted.
 @MainActor
 final class ShortcutMonitor {
 
