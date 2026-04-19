@@ -19,7 +19,7 @@ struct QuickActionsView: View {
                     shortcut: quickActionsService.shortcut.display,
                     isEnabled: $quickActionsService.isEnabled
                 ) {
-                    ShortcutSettingRow(
+                    QuickstartShortcut(
                         shortcut: $quickActionsService.shortcut,
                         lockedMode: .tap,
                         defaultShortcut: .quickActionsDefault

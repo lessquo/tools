@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 import Carbon.HIToolbox
 
-struct ShortcutSettingRow: View {
+struct QuickstartShortcut: View {
     @Binding var shortcut: Shortcut
     var lockedMode: Shortcut.Mode? = nil
     var defaultShortcut: Shortcut
@@ -24,7 +24,7 @@ struct ShortcutSettingRow: View {
     }
 }
 
-struct ShortcutRecorder: View {
+private struct ShortcutRecorder: View {
     @Binding var shortcut: Shortcut
     var lockedMode: Shortcut.Mode? = nil
     var defaultShortcut: Shortcut

@@ -19,7 +19,7 @@ struct DictationView: View {
                     shortcut: dictationService.shortcut.display,
                     isEnabled: $dictationService.isEnabled
                 ) {
-                    ShortcutSettingRow(
+                    QuickstartShortcut(
                         shortcut: $dictationService.shortcut,
                         lockedMode: .hold,
                         defaultShortcut: .dictationDefault
