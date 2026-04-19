@@ -13,7 +13,7 @@ struct ModelRow: View {
         HStack {
             Group {
                 if model.avatar.isEmpty {
-                    Image(systemName: "cube.box")
+                    Image(systemName: "cube")
                         .resizable()
                         .scaledToFit()
                 } else {

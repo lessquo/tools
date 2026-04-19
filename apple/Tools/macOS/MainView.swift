@@ -25,8 +25,8 @@ enum SidebarItem: String, CaseIterable {
     var systemImage: String {
         switch self {
         case .dictation: "mic"
-        case .quickActions: "bolt.fill"
-        case .actions: "bolt"
+        case .quickActions: "cursorarrow.rays"
+        case .actions: "square.stack.3d.up"
         case .models: "cube"
         case .apiKeys: "key"
         case .shortcuts: "command"

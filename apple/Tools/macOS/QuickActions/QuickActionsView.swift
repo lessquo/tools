@@ -15,7 +15,7 @@ struct QuickActionsView: View {
                 QuickstartCard(
                     title: "Quick Actions",
                     description: "Press the shortcut to run an action on selected text from any app.",
-                    systemImage: "bolt",
+                    systemImage: "cursorarrow.rays",
                     shortcut: quickActionsService.shortcut.display,
                     isEnabled: $quickActionsService.isEnabled
                 ) {

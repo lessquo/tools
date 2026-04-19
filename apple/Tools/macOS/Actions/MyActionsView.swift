@@ -69,14 +69,14 @@ struct MyActionsView: View {
             } else if store.actions.isEmpty {
                 ContentUnavailableView(
                     "No Actions",
-                    systemImage: "bolt",
+                    systemImage: "square.stack.3d.up",
                     description: Text("Press ⌘N to create an action")
                 )
                 .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ContentUnavailableView(
                     "No Selection",
-                    systemImage: "bolt",
+                    systemImage: "square.stack.3d.up",
                     description: Text("Select an action to edit")
                 )
                 .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)

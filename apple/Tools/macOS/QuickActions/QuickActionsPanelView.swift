@@ -134,7 +134,7 @@ struct QuickActionsPanelView: View {
 
     private func errorView(_ message: String) -> some View {
         VStack(spacing: 8) {
-            Label(message, systemImage: "exclamationmark.triangle")
+            Label(message, systemImage: "exclamationmark.triangle.fill")
                 .font(.callout)
                 .foregroundStyle(.red)
             Button("Dismiss") { onDismiss() }

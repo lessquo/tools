@@ -54,8 +54,8 @@ final class ModelStore {
 
         var systemImage: String {
             switch self {
-            case .dictation: "mic.fill"
-            case .quickActions: "bolt.fill"
+            case .dictation: "mic"
+            case .quickActions: "cursorarrow.rays"
             }
         }
     }
