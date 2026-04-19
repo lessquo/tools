@@ -5,6 +5,7 @@ import Foundation
 final class QuickActionsService {
     private static let enabledKey = "quickActions.enabled"
     private static let shortcutKey = "quickActions.shortcut"
+    private static let modelIDKey = "quickActions.modelID"
 
     var isEnabled: Bool {
         didSet {
@@ -20,6 +21,10 @@ final class QuickActionsService {
         }
     }
 
+    var modelID: String {
+        didSet { UserDefaults.standard.set(modelID, forKey: Self.modelIDKey) }
+    }
+
     private let monitor = ShortcutMonitor()
     private let panel: QuickActionsPanel
 
@@ -33,6 +38,8 @@ final class QuickActionsService {
         defaults.register(defaults: [Self.enabledKey: false])
         self.isEnabled = defaults.bool(forKey: Self.enabledKey)
         self.shortcut = Shortcut.load(forKey: Self.shortcutKey, default: .quickActionsDefault)
+        self.modelID = defaults.string(forKey: Self.modelIDKey) ?? ""
+        panel.modelIDProvider = { [weak self] in self?.modelID ?? "" }
         monitor.onActivate = { [weak self] in self?.panel.toggle() }
     }
 

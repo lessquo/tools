@@ -89,14 +89,14 @@ struct ModelPickerRow: View {
     @Environment(ModelStore.self) private var store
 
     let feature: ModelStore.Feature
+    @Binding var selectedID: String
     let label: String
     var browseMoreLabel: String = "Browse more…"
     let openExplore: () -> Void
 
     var body: some View {
         let downloaded = store.downloadedModels(for: feature)
-        let selectedID = store.modelID(for: feature)
-        let isReady = store.isModelDownloaded(for: feature)
+        let isReady = store.isModelDownloaded(id: selectedID)
         let showApple = feature == .dictation
 
         HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -114,7 +114,7 @@ struct ModelPickerRow: View {
                 Menu {
                     if showApple {
                         Button {
-                            store.setModelID(STTService.appleSpeechID, for: feature)
+                            selectedID = STTService.appleSpeechID
                         } label: {
                             if selectedID == STTService.appleSpeechID {
                                 Label("Apple Speech", systemImage: "checkmark")
@@ -126,7 +126,7 @@ struct ModelPickerRow: View {
                     }
                     ForEach(downloaded, id: \.id) { model in
                         Button {
-                            store.setModelID(model.id.rawValue, for: feature)
+                            selectedID = model.id.rawValue
                         } label: {
                             if model.id.rawValue == selectedID {
                                 Label(model.id.name, systemImage: "checkmark")
@@ -138,7 +138,7 @@ struct ModelPickerRow: View {
                     Divider()
                     Button(browseMoreLabel) { openExplore() }
                 } label: {
-                    Text(store.displayName(for: feature))
+                    Text(store.displayName(id: selectedID))
                 }
                 .fixedSize()
                 .controlSize(.small)

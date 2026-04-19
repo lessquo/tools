@@ -51,18 +51,6 @@ struct ModelRow: View {
 
             Spacer()
 
-            if state == .downloaded {
-                let features = store.features(selecting: modelID)
-                if !features.isEmpty {
-                    HStack(spacing: 4) {
-                        ForEach(features, id: \.self) { feature in
-                            Image(systemName: feature.systemImage)
-                                .foregroundStyle(.tint)
-                        }
-                    }
-                }
-            }
-
             switch state {
             case .notDownloaded:
                 Button {

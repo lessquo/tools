@@ -27,7 +27,7 @@ final class ModelStore {
         case downloaded
     }
 
-    enum Feature: String, CaseIterable, Hashable {
+    enum Feature: String {
         case dictation
         case quickActions
 
@@ -35,27 +35,6 @@ final class ModelStore {
             switch self {
             case .dictation: "automatic-speech-recognition"
             case .quickActions: "text-generation"
-            }
-        }
-
-        var defaultsKey: String {
-            switch self {
-            case .dictation: "dictationModelID"
-            case .quickActions: "quickActionsModelID"
-            }
-        }
-
-        var label: String {
-            switch self {
-            case .dictation: "Dictation"
-            case .quickActions: "Quick Actions"
-            }
-        }
-
-        var systemImage: String {
-            switch self {
-            case .dictation: "mic"
-            case .quickActions: "cursorarrow.rays"
             }
         }
     }
@@ -72,14 +51,6 @@ final class ModelStore {
     private var resolvedPaths: [String: URL] = [:]
     private var downloadTasks: [String: Task<Void, Never>] = [:]
     private var scanFetchTask: Task<Void, Never>?
-
-    var dictationModelID: String {
-        didSet { UserDefaults.standard.set(dictationModelID, forKey: Feature.dictation.defaultsKey) }
-    }
-
-    var quickActionsModelID: String {
-        didSet { UserDefaults.standard.set(quickActionsModelID, forKey: Feature.quickActions.defaultsKey) }
-    }
 
     // MARK: - Private
 
@@ -102,10 +73,6 @@ final class ModelStore {
     init() {
         self.cache = Self.appCache
         self.client = HubClient(cache: cache)
-        let defaults = UserDefaults.standard
-        let savedDictation = defaults.string(forKey: Feature.dictation.defaultsKey) ?? ""
-        self.dictationModelID = savedDictation.isEmpty ? STTService.appleSpeechID : savedDictation
-        self.quickActionsModelID = defaults.string(forKey: Feature.quickActions.defaultsKey) ?? ""
         scanDownloadedModels()
         Task {
             async let models: Void = fetchModels()
@@ -193,12 +160,6 @@ final class ModelStore {
         resolvedPaths[modelID] = path
         downloadStates[modelID] = .downloaded
         refreshDownloadSize(for: model.id)
-
-        if let feature = feature(matching: model.pipelineTag),
-           !isModelDownloaded(for: feature) {
-            setModelID(modelID, for: feature)
-        }
-
         scanDownloadedModels()
     }
 
@@ -231,13 +192,6 @@ final class ModelStore {
         resolvedPaths[modelID] = nil
         downloadStates[modelID] = .notDownloaded
         downloadedSizes[modelID] = nil
-        for feature in features(selecting: modelID) {
-            let replacement = downloadedModels.first(where: {
-                $0.pipelineTag == feature.pipelineTag && $0.id.rawValue != modelID
-            })?.id.rawValue ?? ""
-            setModelID(replacement, for: feature)
-        }
-
         scanDownloadedModels()
     }
 
@@ -251,47 +205,20 @@ final class ModelStore {
 
     var cacheDirectory: URL { cache.cacheDirectory }
 
-    func modelID(for feature: Feature) -> String {
-        switch feature {
-        case .dictation: dictationModelID
-        case .quickActions: quickActionsModelID
-        }
-    }
-
-    func setModelID(_ id: String, for feature: Feature) {
-        switch feature {
-        case .dictation: dictationModelID = id
-        case .quickActions: quickActionsModelID = id
-        }
-    }
-
-    func model(for feature: Feature) -> HuggingFace.Model? {
-        let id = modelID(for: feature)
+    func model(id: String) -> HuggingFace.Model? {
         guard !id.isEmpty, id != STTService.appleSpeechID else { return nil }
         return downloadedModels.first { $0.id.rawValue == id }
             ?? models.first { $0.id.rawValue == id }
     }
 
-    func isModelDownloaded(for feature: Feature) -> Bool {
-        let id = modelID(for: feature)
+    func isModelDownloaded(id: String) -> Bool {
         if id == STTService.appleSpeechID { return isAppleSpeechInstalled }
         return !id.isEmpty && downloadStates[id] == .downloaded
     }
 
-    func displayName(for feature: Feature) -> String {
-        let id = modelID(for: feature)
+    func displayName(id: String) -> String {
         if id == STTService.appleSpeechID { return "Apple Speech" }
-        return model(for: feature)?.id.name ?? "Select model"
-    }
-
-    func features(selecting modelID: String) -> [Feature] {
-        guard !modelID.isEmpty else { return [] }
-        return Feature.allCases.filter { self.modelID(for: $0) == modelID }
-    }
-
-    func feature(matching pipelineTag: String?) -> Feature? {
-        guard let tag = pipelineTag else { return nil }
-        return Feature.allCases.first { $0.pipelineTag == tag }
+        return model(id: id)?.id.name ?? "Select model"
     }
 
     func downloadedModels(for feature: Feature) -> [HuggingFace.Model] {

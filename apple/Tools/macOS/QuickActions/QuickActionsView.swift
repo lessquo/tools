@@ -26,6 +26,7 @@ struct QuickActionsView: View {
                     )
                     ModelPickerRow(
                         feature: .quickActions,
+                        selectedID: $quickActionsService.modelID,
                         label: "Text-generation model",
                         openExplore: openExplore
                     )

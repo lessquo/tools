@@ -26,6 +26,7 @@ struct DictationView: View {
                     )
                     ModelPickerRow(
                         feature: .dictation,
+                        selectedID: $dictationService.modelID,
                         label: "Speech-to-text model",
                         browseMoreLabel: "Browse Parakeet models…",
                         openExplore: openExplore
@@ -50,7 +51,7 @@ struct DictationView: View {
                         action: requestMicrophone,
                         readyAction: permissions.openMicrophoneSettings
                     ))
-                    if modelStore.modelID(for: .dictation) == STTService.appleSpeechID {
+                    if dictationService.modelID == STTService.appleSpeechID {
                         RequirementRow(requirement: .init(
                             id: "speech-recognition",
                             label: "Speech recognition access",
@@ -88,10 +89,11 @@ struct DictationView: View {
 }
 
 #Preview {
+    let store = ModelStore()
     DictationView()
-        .environment(DictationService(modelStore: ModelStore()))
+        .environment(DictationService(modelStore: store))
         .environment(MainViewState())
-        .environment(ModelStore())
+        .environment(store)
         .environment(ModelsViewState())
         .environment(ExploreViewState())
         .environment(PermissionsService())

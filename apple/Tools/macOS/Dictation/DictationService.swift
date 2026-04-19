@@ -5,6 +5,7 @@ import Foundation
 final class DictationService {
     private static let enabledKey = "dictation.enabled"
     private static let shortcutKey = "dictation.shortcut"
+    private static let modelIDKey = "dictation.modelID"
 
     var isEnabled: Bool {
         didSet {
@@ -18,6 +19,10 @@ final class DictationService {
             shortcut.save(forKey: Self.shortcutKey)
             applyShortcut()
         }
+    }
+
+    var modelID: String {
+        didSet { UserDefaults.standard.set(modelID, forKey: Self.modelIDKey) }
     }
 
     private let modelStore: ModelStore
@@ -38,6 +43,8 @@ final class DictationService {
         defaults.register(defaults: [Self.enabledKey: false])
         self.isEnabled = defaults.bool(forKey: Self.enabledKey)
         self.shortcut = Shortcut.load(forKey: Self.shortcutKey, default: .dictationDefault)
+        let savedModelID = defaults.string(forKey: Self.modelIDKey) ?? ""
+        self.modelID = savedModelID.isEmpty ? STTService.appleSpeechID : savedModelID
 
         monitor.onPress = { [weak self] in self?.beginDictation() }
         monitor.onRelease = { [weak self] in self?.endDictation() }
@@ -72,7 +79,7 @@ final class DictationService {
 
     private func preloadModel() {
         let id = withObservationTracking {
-            modelStore.modelID(for: .dictation)
+            modelID
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self, self.isEnabled else { return }
@@ -95,7 +102,7 @@ final class DictationService {
 
     private func beginDictation() {
         guard beginTask == nil else { return }
-        let id = modelStore.modelID(for: .dictation)
+        let id = modelID
         guard !id.isEmpty else { return }
         let directory: URL? = id == STTService.appleSpeechID ? nil : modelStore.modelDirectory(for: id)
 

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct QuickActionsPanelView: View {
-    @Bindable var service: ActionService
+    @Bindable var service: ActionsService
     @FocusState private var isEditorFocused: Bool
     @State private var editorMeasuredHeight: CGFloat = 0
     let onClose: () -> Void

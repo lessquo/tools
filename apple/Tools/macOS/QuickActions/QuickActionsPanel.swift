@@ -10,9 +10,11 @@ private class KeyablePanel: NSPanel {
 final class QuickActionsPanel {
 
     private var panel: NSPanel?
-    private var service: ActionService?
+    private var service: ActionsService?
     private var globalEventMonitor: Any?
     private var localEventMonitor: Any?
+
+    var modelIDProvider: () -> String = { "" }
 
     private let llmService: LLMService
     private let modelStore: ModelStore
@@ -69,7 +71,11 @@ final class QuickActionsPanel {
     }
 
     private func presentPanel() {
-        let service = ActionService(llm: llmService, modelStore: modelStore)
+        let service = ActionsService(
+            llm: llmService,
+            modelStore: modelStore,
+            modelIDProvider: modelIDProvider
+        )
         self.service = service
 
         let view = QuickActionsPanelView(
