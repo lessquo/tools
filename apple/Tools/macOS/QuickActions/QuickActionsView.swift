@@ -28,7 +28,7 @@ struct QuickActionsView: View {
                         selectedID: $quickActionsService.modelID,
                         label: "Text-generation model",
                         displayName: modelStore.displayName(id: quickActionsService.modelID),
-                        isReady: modelStore.isModelDownloaded(id: quickActionsService.modelID),
+                        isReady: modelStore.isModelReady(id: quickActionsService.modelID),
                         primaryOption: nil,
                         options: modelStore.downloadedModels(for: .quickActions).map {
                             QuickstartModelOption(id: $0.id.rawValue, name: $0.id.name)

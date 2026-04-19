@@ -104,7 +104,7 @@ final class ActionsService {
 
     private func runLLM(prompt: String, onChunk: @escaping (String) -> Void) async throws -> String {
         let modelID = modelIDProvider()
-        guard modelStore.isModelDownloaded(id: modelID) else {
+        guard modelStore.isModelReady(id: modelID) else {
             throw LLMRunError.noModel
         }
 

@@ -211,7 +211,7 @@ final class ModelStore {
             ?? models.first { $0.id.rawValue == id }
     }
 
-    func isModelDownloaded(id: String) -> Bool {
+    func isModelReady(id: String) -> Bool {
         if id == STTService.appleSpeechID { return isAppleSpeechInstalled }
         return !id.isEmpty && downloadStates[id] == .downloaded
     }

@@ -28,7 +28,7 @@ struct DictationView: View {
                         selectedID: $dictationService.modelID,
                         label: "Speech-to-text model",
                         displayName: modelStore.displayName(id: dictationService.modelID),
-                        isReady: modelStore.isModelDownloaded(id: dictationService.modelID),
+                        isReady: modelStore.isModelReady(id: dictationService.modelID),
                         primaryOption: QuickstartModelOption(
                             id: STTService.appleSpeechID,
                             name: "Apple Speech"
