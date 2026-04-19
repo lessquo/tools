@@ -5,24 +5,24 @@ import Speech
 @MainActor
 final class AppleSpeechBackend: STTService.Backend {
 
-    private var locale: Locale?
+    private let locale: Locale
 
-    func prepare(preferredLocale: Locale = .current) async throws {
-        try await requestAuthorization()
+    init(preferredLocale: Locale = .current) async throws {
+        try await Self.requestAuthorization()
 
         let supported = await SpeechTranscriber.supportedLocales
         let resolved = Self.bestLocale(for: preferredLocale, supported: supported)
             ?? Locale(identifier: "en_US")
-        self.locale = resolved
 
         let installed = await SpeechTranscriber.installedLocales
         if !installed.contains(where: { $0.identifier == resolved.identifier }) {
-            try await downloadAsset(for: resolved)
+            try await Self.downloadAsset(for: resolved)
         }
+
+        self.locale = resolved
     }
 
     func transcribe(pcm: [Float], sampleRate: Double) async throws -> String {
-        guard let locale else { throw AppleSpeechError.notPrepared }
         guard !pcm.isEmpty else { return "" }
 
         let transcriber = SpeechTranscriber(
@@ -58,7 +58,7 @@ final class AppleSpeechBackend: STTService.Backend {
 
     // MARK: - Helpers
 
-    private func requestAuthorization() async throws {
+    private static func requestAuthorization() async throws {
         let status = await withCheckedContinuation { (c: CheckedContinuation<SFSpeechRecognizerAuthorizationStatus, Never>) in
             SFSpeechRecognizer.requestAuthorization { c.resume(returning: $0) }
         }
@@ -70,7 +70,7 @@ final class AppleSpeechBackend: STTService.Backend {
         }
     }
 
-    private func downloadAsset(for locale: Locale) async throws {
+    private static func downloadAsset(for locale: Locale) async throws {
         let probe = SpeechTranscriber(
             locale: locale,
             transcriptionOptions: [],
@@ -115,15 +115,12 @@ final class AppleSpeechBackend: STTService.Backend {
 }
 
 enum AppleSpeechError: LocalizedError {
-    case notPrepared
     case authorizationDenied
     case assetUnavailable
     case bufferAllocationFailed
 
     var errorDescription: String? {
         switch self {
-        case .notPrepared:
-            return "Apple Speech is not prepared. Grant permission and wait for the model to finish installing."
         case .authorizationDenied:
             return "Speech recognition permission was denied. Enable it in System Settings › Privacy & Security › Speech Recognition."
         case .assetUnavailable:

@@ -48,9 +48,7 @@ final class STTService {
 
     private static func makeBackend(id: String, directory: URL?) async throws -> any Backend {
         if id == appleSpeechID {
-            let apple = AppleSpeechBackend()
-            try await apple.prepare()
-            return apple
+            return try await AppleSpeechBackend()
         }
 
         guard let directory else { throw STTServiceError.modelNotLoaded }
