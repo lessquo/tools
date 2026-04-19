@@ -91,13 +91,6 @@ struct ModelRow: View {
             }
         }
         .padding(.vertical, 4)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if state == .downloaded,
-               let feature = store.feature(matching: model.pipelineTag) {
-                store.setModelID(modelID, for: feature)
-            }
-        }
         .contextMenu {
             Button("Copy Name") {
                 UIPasteboard.general.string = modelID

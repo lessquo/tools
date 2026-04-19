@@ -103,12 +103,6 @@ struct ModelRow: View {
                     store.cancelDownload(model)
                 }
             case .downloaded:
-                if let feature = store.feature(matching: model.pipelineTag),
-                   store.modelID(for: feature) != modelID {
-                    Button("Select for \(feature.label)") {
-                        store.setModelID(modelID, for: feature)
-                    }
-                }
                 Button("Delete", role: .destructive) {
                     do {
                         try store.deleteDownload(model)
