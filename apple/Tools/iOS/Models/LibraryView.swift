@@ -11,18 +11,18 @@ final class LibraryViewState {
 }
 
 struct LibraryView: View {
-    @Environment(HFService.self) private var store
+    @Environment(HFService.self) private var hfService
     @Environment(LibraryViewState.self) private var state
 
     var downloadedTags: [PipelineTag] {
-        let ids = Set(store.downloadedModels.compactMap(\.pipelineTag))
-        return store.pipelineTags.filter { ids.contains($0.id) }
+        let ids = Set(hfService.downloadedModels.compactMap(\.pipelineTag))
+        return hfService.pipelineTags.filter { ids.contains($0.id) }
     }
 
     var filteredModels: [HuggingFace.Model] {
         var base = state.filterTag.isEmpty
-            ? store.downloadedModels
-            : store.downloadedModels.filter { $0.pipelineTag == state.filterTag }
+            ? hfService.downloadedModels
+            : hfService.downloadedModels.filter { $0.pipelineTag == state.filterTag }
         if !state.searchText.isEmpty {
             base = base.filter { $0.id.rawValue.localizedCaseInsensitiveContains(state.searchText) }
         }
@@ -32,7 +32,7 @@ struct LibraryView: View {
     var body: some View {
         @Bindable var state = state
         Group {
-            if store.downloadedModels.isEmpty {
+            if hfService.downloadedModels.isEmpty {
                 ContentUnavailableView(
                     "No Models",
                     systemImage: "square.and.arrow.down",
@@ -88,12 +88,12 @@ struct LibraryView: View {
         }
         .searchable(text: $state.searchText)
         .alert("Something went wrong", isPresented: Binding(
-            get: { store.downloadError != nil },
-            set: { if !$0 { store.downloadError = nil } }
+            get: { hfService.downloadError != nil },
+            set: { if !$0 { hfService.downloadError = nil } }
         )) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(store.downloadError ?? "")
+            Text(hfService.downloadError ?? "")
         }
     }
 }

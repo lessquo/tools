@@ -2,12 +2,12 @@ import HuggingFace
 import SwiftUI
 
 struct ModelRow: View {
-    @Environment(HFService.self) private var store
+    @Environment(HFService.self) private var hfService
     let model: HuggingFace.Model
     var onTagTap: ((String) -> Void)?
     var body: some View {
         let modelID = model.id.rawValue
-        let state = store.downloadStates[modelID] ?? .notDownloaded
+        let state = hfService.downloadStates[modelID] ?? .notDownloaded
 
         HStack {
             Group {
@@ -37,7 +37,7 @@ struct ModelRow: View {
                         Text((model.likes ?? 0).compactFormatted)
                     }
                     if let tag = model.pipelineTag,
-                       let label = store.pipelineTags.first(where: { $0.id == tag })?.label {
+                       let label = hfService.pipelineTags.first(where: { $0.id == tag })?.label {
                         Button(label) {
                             onTagTap?(tag)
                         }
@@ -54,7 +54,7 @@ struct ModelRow: View {
             switch state {
             case .notDownloaded:
                 Button {
-                    store.startDownload(model)
+                    hfService.startDownload(model)
                 } label: {
                     Image(systemName: "arrow.down.circle")
                 }
@@ -64,14 +64,14 @@ struct ModelRow: View {
                 ProgressView(value: fraction)
                     .frame(width: 60)
                 Button {
-                    store.cancelDownload(model)
+                    hfService.cancelDownload(model)
                 } label: {
                     Image(systemName: "xmark.circle")
                 }
                 .buttonStyle(.borderless)
 
             case .downloaded:
-                if let bytes = store.downloadedSizes[modelID] {
+                if let bytes = hfService.downloadedSizes[modelID] {
                     Text(bytes.formatted(.byteCount(style: .file)))
                         .font(.caption)
                         .foregroundStyle(.secondary)
