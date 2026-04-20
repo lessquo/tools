@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DictationView: View {
-    @Environment(ModelStore.self) private var modelStore
+    @Environment(HFService.self) private var hfService
     @Environment(ModelsViewState.self) private var modelsState
     @Environment(ExploreViewState.self) private var exploreState
     @Environment(MainViewState.self) private var mainViewState
@@ -27,13 +27,13 @@ struct DictationView: View {
                     QuickstartModel(
                         selectedID: $dictationService.modelID,
                         label: "Speech-to-text model",
-                        displayName: modelStore.displayName(id: dictationService.modelID),
-                        isReady: modelStore.isModelReady(id: dictationService.modelID),
+                        displayName: hfService.displayName(id: dictationService.modelID),
+                        isReady: hfService.isModelReady(id: dictationService.modelID),
                         primaryOption: QuickstartModelOption(
                             id: STTService.appleSpeechID,
                             name: "Apple Speech"
                         ),
-                        options: modelStore.downloadedModels(for: .dictation).map {
+                        options: hfService.downloadedModels(for: .dictation).map {
                             QuickstartModelOption(id: $0.id.rawValue, name: $0.id.name)
                         },
                         browseMoreLabel: "Browse Parakeet models…",
@@ -97,9 +97,9 @@ struct DictationView: View {
 }
 
 #Preview {
-    let store = ModelStore()
+    let store = HFService()
     DictationView()
-        .environment(DictationService(modelStore: store))
+        .environment(DictationService(hfService: store))
         .environment(MainViewState())
         .environment(store)
         .environment(ModelsViewState())

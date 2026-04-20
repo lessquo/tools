@@ -25,7 +25,7 @@ final class DictationService {
         didSet { UserDefaults.standard.set(modelID, forKey: Self.modelIDKey) }
     }
 
-    private let modelStore: ModelStore
+    private let hfService: HFService
     private let audio = AudioCaptureService()
     private let stt: STTService
     private let monitor = ShortcutMonitor()
@@ -35,9 +35,9 @@ final class DictationService {
     private var beginTask: Task<Void, Never>?
     private var preloadTask: Task<Void, Never>?
 
-    init(modelStore: ModelStore) {
-        self.modelStore = modelStore
-        let stt = STTService(modelStore: modelStore)
+    init(hfService: HFService) {
+        self.hfService = hfService
+        let stt = STTService(hfService: hfService)
         self.stt = stt
         self.panel = DictationPanel(audio: audio, stt: stt)
 
@@ -91,10 +91,10 @@ final class DictationService {
 
         preloadTask?.cancel()
         guard !id.isEmpty else { return }
-        preloadTask = Task { [stt, modelStore] in
+        preloadTask = Task { [stt, hfService] in
             try? await stt.loadModel(id: id)
             if id == STTService.appleSpeechID {
-                await modelStore.refreshAppleSpeechStatus()
+                await hfService.refreshAppleSpeechStatus()
             }
         }
     }

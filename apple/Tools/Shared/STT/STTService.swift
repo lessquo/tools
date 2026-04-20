@@ -22,10 +22,10 @@ final class STTService {
     private(set) var state: State = .idle
     private var backend: (any Backend)?
     private var loadedModelID: String?
-    private let modelStore: ModelStore
+    private let hfService: HFService
 
-    init(modelStore: ModelStore) {
-        self.modelStore = modelStore
+    init(hfService: HFService) {
+        self.hfService = hfService
     }
 
     func loadModel(id: String) async throws {
@@ -55,7 +55,7 @@ final class STTService {
         if id == Self.appleSpeechID {
             return try await AppleSpeechBackend()
         }
-        return try ParakeetBackend(directory: modelStore.modelDirectory(for: id))
+        return try ParakeetBackend(directory: hfService.modelDirectory(for: id))
     }
 }
 

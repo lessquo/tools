@@ -3,7 +3,7 @@ import HuggingFace
 
 @Observable
 @MainActor
-final class ModelStore {
+final class HFService {
 
     enum SortOption: String, CaseIterable {
         case downloads = "Downloads"
@@ -396,7 +396,7 @@ extension HuggingFace.Model {
 }
 
 extension [HuggingFace.Model] {
-    func sorted(by option: ModelStore.SortOption) -> [HuggingFace.Model] {
+    func sorted(by option: HFService.SortOption) -> [HuggingFace.Model] {
         switch option {
         case .downloads:
             sorted { ($0.downloads ?? 0) > ($1.downloads ?? 0) }

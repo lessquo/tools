@@ -2,7 +2,7 @@ import SwiftUI
 
 @main
 struct ToolsApp: App {
-    @State private var modelStore = ModelStore()
+    @State private var hfService = HFService()
     @State private var apiKeyStore = APIKeyStore()
     @State private var modelsState = ModelsViewState()
     @State private var libraryState = LibraryViewState()
@@ -11,7 +11,7 @@ struct ToolsApp: App {
     var body: some Scene {
         WindowGroup {
             MainView()
-                .environment(modelStore)
+                .environment(hfService)
                 .environment(apiKeyStore)
                 .environment(modelsState)
                 .environment(libraryState)

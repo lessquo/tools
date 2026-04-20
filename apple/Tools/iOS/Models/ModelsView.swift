@@ -38,7 +38,7 @@ struct ModelsView: View {
 
 #Preview {
     ModelsView()
-        .environment(ModelStore())
+        .environment(HFService())
         .environment(ModelsViewState())
         .environment(LibraryViewState())
         .environment(ExploreViewState())

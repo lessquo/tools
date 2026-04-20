@@ -13,22 +13,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let permissionsService = PermissionsService()
 
     let llmService: LLMService
-    let modelStore: ModelStore
+    let hfService: HFService
     let actionStore: ActionStore
     let dictationService: DictationService
     let quickActionsService: QuickActionsService
 
     override init() {
         let llmService = LLMService()
-        let modelStore = ModelStore()
+        let hfService = HFService()
         let actionStore = ActionStore()
         self.llmService = llmService
-        self.modelStore = modelStore
+        self.hfService = hfService
         self.actionStore = actionStore
-        self.dictationService = DictationService(modelStore: modelStore)
+        self.dictationService = DictationService(hfService: hfService)
         self.quickActionsService = QuickActionsService(
             llmService: llmService,
-            modelStore: modelStore,
+            hfService: hfService,
             actionStore: actionStore
         )
         super.init()

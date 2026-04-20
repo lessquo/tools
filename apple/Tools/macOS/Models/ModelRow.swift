@@ -3,7 +3,7 @@ import HuggingFace
 import SwiftUI
 
 struct ModelRow: View {
-    @Environment(ModelStore.self) private var store
+    @Environment(HFService.self) private var store
     let model: HuggingFace.Model
     var onTagTap: ((String) -> Void)?
     var body: some View {

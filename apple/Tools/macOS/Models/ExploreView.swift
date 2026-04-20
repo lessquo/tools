@@ -6,12 +6,12 @@ import SwiftUI
 final class ExploreViewState {
     var searchText = ""
     var filterTag = ""
-    var sortOption: ModelStore.SortOption = .downloads
+    var sortOption: HFService.SortOption = .downloads
     var selection: HuggingFace.Model.ID?
 }
 
 struct ExploreView: View {
-    @Environment(ModelStore.self) private var store
+    @Environment(HFService.self) private var store
     @Environment(ExploreViewState.self) private var state
 
     var filteredModels: [HuggingFace.Model] {
@@ -56,7 +56,7 @@ struct ExploreView: View {
                             }
                             Spacer()
                             Picker(selection: $state.sortOption) {
-                                ForEach(ModelStore.SortOption.allCases, id: \.self) {
+                                ForEach(HFService.SortOption.allCases, id: \.self) {
                                     Text($0.rawValue)
                                 }
                             } label: {

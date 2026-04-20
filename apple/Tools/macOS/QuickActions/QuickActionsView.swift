@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct QuickActionsView: View {
-    @Environment(ModelStore.self) private var modelStore
+    @Environment(HFService.self) private var hfService
     @Environment(ModelsViewState.self) private var modelsState
     @Environment(ExploreViewState.self) private var exploreState
     @Environment(MainViewState.self) private var mainViewState
@@ -27,10 +27,10 @@ struct QuickActionsView: View {
                     QuickstartModel(
                         selectedID: $quickActionsService.modelID,
                         label: "Text-generation model",
-                        displayName: modelStore.displayName(id: quickActionsService.modelID),
-                        isReady: modelStore.isModelReady(id: quickActionsService.modelID),
+                        displayName: hfService.displayName(id: quickActionsService.modelID),
+                        isReady: hfService.isModelReady(id: quickActionsService.modelID),
                         primaryOption: nil,
-                        options: modelStore.downloadedModels(for: .quickActions).map {
+                        options: hfService.downloadedModels(for: .quickActions).map {
                             QuickstartModelOption(id: $0.id.rawValue, name: $0.id.name)
                         },
                         openExplore: openExplore
@@ -55,7 +55,7 @@ struct QuickActionsView: View {
     }
 
     private func openExplore() {
-        exploreState.filterTag = ModelStore.Feature.quickActions.pipelineTag
+        exploreState.filterTag = HFService.Feature.quickActions.pipelineTag
         exploreState.searchText = ""
         modelsState.selectedTab = .explore
         mainViewState.sidebarItem = .models
@@ -66,11 +66,11 @@ struct QuickActionsView: View {
     QuickActionsView()
         .environment(QuickActionsService(
             llmService: LLMService(),
-            modelStore: ModelStore(),
+            hfService: HFService(),
             actionStore: ActionStore()
         ))
         .environment(MainViewState())
-        .environment(ModelStore())
+        .environment(HFService())
         .environment(ModelsViewState())
         .environment(ExploreViewState())
         .environment(PermissionsService())

@@ -13,7 +13,7 @@ struct ToolsApp: App {
                 .environment(appDelegate.actionsState)
                 .environment(appDelegate.myActionsState)
                 .environment(appDelegate.templatesState)
-                .environment(appDelegate.modelStore)
+                .environment(appDelegate.hfService)
                 .environment(appDelegate.modelsState)
                 .environment(appDelegate.libraryState)
                 .environment(appDelegate.exploreState)
