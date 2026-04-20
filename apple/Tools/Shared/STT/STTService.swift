@@ -55,7 +55,7 @@ final class STTService {
         if id == Self.appleSpeechID {
             return try await AppleSpeechService()
         }
-        return try ParakeetBackend(directory: hfService.modelDirectory(for: id))
+        return try ParakeetService(directory: hfService.modelDirectory(for: id))
     }
 }
 

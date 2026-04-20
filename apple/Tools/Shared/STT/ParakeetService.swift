@@ -3,7 +3,7 @@ import MLX
 import MLXAudioSTT
 
 @MainActor
-final class ParakeetBackend: STTService.Backend {
+final class ParakeetService: STTService.Backend {
 
     private let model: ParakeetModel
 
