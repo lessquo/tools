@@ -3,7 +3,7 @@ import Foundation
 import Speech
 
 @MainActor
-final class AppleSpeechBackend: STTService.Backend {
+final class AppleSpeechService: STTService.Backend {
 
     private let locale: Locale
 
@@ -131,7 +131,7 @@ enum AppleSpeechError: LocalizedError {
     }
 }
 
-extension AppleSpeechBackend {
+extension AppleSpeechService {
     static func isLocaleInstalled(_ locale: Locale = .current) async -> Bool {
         let installed = await SpeechTranscriber.installedLocales
         if installed.contains(where: { $0.identifier == locale.identifier }) { return true }

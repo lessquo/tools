@@ -53,7 +53,7 @@ final class STTService {
 
     private func makeBackend(id: String) async throws -> any Backend {
         if id == Self.appleSpeechID {
-            return try await AppleSpeechBackend()
+            return try await AppleSpeechService()
         }
         return try ParakeetBackend(directory: hfService.modelDirectory(for: id))
     }

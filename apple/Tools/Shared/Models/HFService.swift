@@ -83,7 +83,7 @@ final class HFService {
     }
 
     func refreshAppleSpeechStatus() async {
-        let installed = await AppleSpeechBackend.isLocaleInstalled()
+        let installed = await AppleSpeechService.isLocaleInstalled()
         self.isAppleSpeechInstalled = installed
     }
 
