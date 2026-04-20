@@ -1,14 +1,14 @@
 import SwiftUI
 
 enum ModelsTab: String, CaseIterable {
-    case library = "Library"
+    case downloaded = "Downloaded"
     case explore = "Explore"
 }
 
 @Observable
 @MainActor
 final class ModelsViewState {
-    var selectedTab = ModelsTab.library
+    var selectedTab = ModelsTab.downloaded
 }
 
 struct ModelsView: View {
@@ -18,7 +18,7 @@ struct ModelsView: View {
         @Bindable var state = state
         Group {
             switch state.selectedTab {
-            case .library: LibraryView()
+            case .downloaded: DownloadedView()
             case .explore: ExploreView()
             }
         }
@@ -40,6 +40,6 @@ struct ModelsView: View {
     ModelsView()
         .environment(HFService())
         .environment(ModelsViewState())
-        .environment(LibraryViewState())
+        .environment(DownloadedViewState())
         .environment(ExploreViewState())
 }

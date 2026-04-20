@@ -3,16 +3,16 @@ import SwiftUI
 
 @Observable
 @MainActor
-final class LibraryViewState {
+final class DownloadedViewState {
     var searchText = ""
     var filterTag = ""
     var sortOption: HFService.SortOption = .downloads
     var selection: HuggingFace.Model.ID?
 }
 
-struct LibraryView: View {
+struct DownloadedView: View {
     @Environment(HFService.self) private var hfService
-    @Environment(LibraryViewState.self) private var state
+    @Environment(DownloadedViewState.self) private var state
 
     var downloadedTags: [PipelineTag] {
         let ids = Set(hfService.downloadedModels.compactMap(\.pipelineTag))

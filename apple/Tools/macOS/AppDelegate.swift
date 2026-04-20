@@ -8,7 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let templatesState = TemplatesViewState()
     let apiKeyStore = APIKeyStore()
     let modelsState = ModelsViewState()
-    let libraryState = LibraryViewState()
+    let downloadedState = DownloadedViewState()
     let exploreState = ExploreViewState()
     let permissionsService = PermissionsService()
 

@@ -7,7 +7,7 @@ struct ToolsApp: App {
     @State private var modelService: ModelService
     @State private var apiKeyStore = APIKeyStore()
     @State private var modelsState = ModelsViewState()
-    @State private var libraryState = LibraryViewState()
+    @State private var downloadedState = DownloadedViewState()
     @State private var exploreState = ExploreViewState()
 
     init() {
@@ -26,7 +26,7 @@ struct ToolsApp: App {
                 .environment(modelService)
                 .environment(apiKeyStore)
                 .environment(modelsState)
-                .environment(libraryState)
+                .environment(downloadedState)
                 .environment(exploreState)
         }
     }

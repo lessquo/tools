@@ -16,7 +16,7 @@ struct ToolsApp: App {
                 .environment(appDelegate.hfService)
                 .environment(appDelegate.modelService)
                 .environment(appDelegate.modelsState)
-                .environment(appDelegate.libraryState)
+                .environment(appDelegate.downloadedState)
                 .environment(appDelegate.exploreState)
                 .environment(appDelegate.apiKeyStore)
                 .environment(appDelegate.permissionsService)
