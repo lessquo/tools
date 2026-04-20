@@ -102,7 +102,7 @@ struct DictationView: View {
     let apple = AppleSpeechService()
     let model = ModelService(hfService: hf, appleSpeechService: apple)
     DictationView()
-        .environment(DictationService(hfService: hf, appleSpeechService: apple))
+        .environment(DictationService(stt: STTService(hfService: hf, appleSpeechService: apple)))
         .environment(MainViewState())
         .environment(hf)
         .environment(model)

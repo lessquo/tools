@@ -25,7 +25,6 @@ final class DictationService {
         didSet { UserDefaults.standard.set(modelID, forKey: Self.modelIDKey) }
     }
 
-    private let hfService: HFService
     private let audio = AudioCaptureService()
     private let stt: STTService
     private let monitor = ShortcutMonitor()
@@ -35,9 +34,7 @@ final class DictationService {
     private var beginTask: Task<Void, Never>?
     private var preloadTask: Task<Void, Never>?
 
-    init(hfService: HFService, appleSpeechService: AppleSpeechService) {
-        self.hfService = hfService
-        let stt = STTService(hfService: hfService, appleSpeechService: appleSpeechService)
+    init(stt: STTService) {
         self.stt = stt
         self.panel = DictationPanel(audio: audio, stt: stt)
 

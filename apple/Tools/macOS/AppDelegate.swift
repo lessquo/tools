@@ -31,7 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.appleSpeechService = appleSpeechService
         self.modelService = modelService
         self.actionStore = actionStore
-        self.dictationService = DictationService(hfService: hfService, appleSpeechService: appleSpeechService)
+        self.dictationService = DictationService(stt: STTService(hfService: hfService, appleSpeechService: appleSpeechService))
         self.quickActionsService = QuickActionsService(
             llmService: llmService,
             hfService: hfService,
