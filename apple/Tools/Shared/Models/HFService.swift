@@ -3,7 +3,7 @@ import HuggingFace
 
 @Observable
 @MainActor
-final class HFService {
+final class HFService: ModelService.Provider {
 
     enum SortOption: String, CaseIterable {
         case downloads = "Downloads"
@@ -68,8 +68,6 @@ final class HFService {
         return HubCache(cacheDirectory: modelsDir)
     }()
 
-    var isAppleSpeechInstalled: Bool = false
-
     init() {
         self.cache = Self.appCache
         self.client = HubClient(cache: cache)
@@ -77,14 +75,8 @@ final class HFService {
         Task {
             async let models: Void = fetchModels()
             async let tags: Void = fetchPipelineTags()
-            async let apple: Void = refreshAppleSpeechStatus()
-            _ = await (models, tags, apple)
+            _ = await (models, tags)
         }
-    }
-
-    func refreshAppleSpeechStatus() async {
-        let installed = await AppleSpeechService.isLocaleInstalled()
-        self.isAppleSpeechInstalled = installed
     }
 
     // MARK: - Fetch
@@ -206,19 +198,12 @@ final class HFService {
     var cacheDirectory: URL { cache.cacheDirectory }
 
     func model(id: String) -> HuggingFace.Model? {
-        guard !id.isEmpty, id != STTService.appleSpeechID else { return nil }
-        return downloadedModels.first { $0.id.rawValue == id }
+        downloadedModels.first { $0.id.rawValue == id }
             ?? models.first { $0.id.rawValue == id }
     }
 
-    func isModelReady(id: String) -> Bool {
-        if id == STTService.appleSpeechID { return isAppleSpeechInstalled }
-        return !id.isEmpty && downloadStates[id] == .downloaded
-    }
-
-    func displayName(id: String) -> String {
-        if id == STTService.appleSpeechID { return "Apple Speech" }
-        return model(id: id)?.id.name ?? "Select model"
+    func modelName(id: String) -> String? {
+        model(id: id)?.id.name
     }
 
     func downloadedModels(for feature: Feature) -> [HuggingFace.Model] {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DictationView: View {
     @Environment(HFService.self) private var hfService
+    @Environment(ModelService.self) private var modelService
     @Environment(ModelsViewState.self) private var modelsState
     @Environment(ExploreViewState.self) private var exploreState
     @Environment(MainViewState.self) private var mainViewState
@@ -27,11 +28,11 @@ struct DictationView: View {
                     QuickstartModel(
                         selectedID: $dictationService.modelID,
                         label: "Speech-to-text model",
-                        displayName: hfService.displayName(id: dictationService.modelID),
-                        isReady: hfService.isModelReady(id: dictationService.modelID),
+                        modelName: modelService.modelName(id: dictationService.modelID),
+                        isReady: modelService.isModelReady(id: dictationService.modelID),
                         primaryOption: QuickstartModelOption(
-                            id: STTService.appleSpeechID,
-                            name: "Apple Speech"
+                            id: AppleSpeechService.modelID,
+                            name: modelService.modelName(id: AppleSpeechService.modelID)
                         ),
                         options: hfService.downloadedModels(for: .dictation).map {
                             QuickstartModelOption(id: $0.id.rawValue, name: $0.id.name)
@@ -59,7 +60,7 @@ struct DictationView: View {
                         action: requestMicrophone,
                         readyAction: permissions.openMicrophoneSettings
                     ))
-                    if dictationService.modelID == STTService.appleSpeechID {
+                    if dictationService.modelID == AppleSpeechService.modelID {
                         QuickstartPermission(requirement: .init(
                             id: "speech-recognition",
                             label: "Speech recognition access",
@@ -97,11 +98,14 @@ struct DictationView: View {
 }
 
 #Preview {
-    let store = HFService()
+    let hf = HFService()
+    let apple = AppleSpeechService()
+    let model = ModelService(hfService: hf, appleSpeechService: apple)
     DictationView()
-        .environment(DictationService(hfService: store))
+        .environment(DictationService(hfService: hf, appleSpeechService: apple))
         .environment(MainViewState())
-        .environment(store)
+        .environment(hf)
+        .environment(model)
         .environment(ModelsViewState())
         .environment(ExploreViewState())
         .environment(PermissionsService())

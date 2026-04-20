@@ -28,10 +28,11 @@ final class QuickActionsService {
     private let monitor = ShortcutMonitor()
     private let panel: QuickActionsPanel
 
-    init(llmService: LLMService, hfService: HFService, actionStore: ActionStore) {
+    init(llmService: LLMService, hfService: HFService, modelService: ModelService, actionStore: ActionStore) {
         self.panel = QuickActionsPanel(
             llmService: llmService,
             hfService: hfService,
+            modelService: modelService,
             actionStore: actionStore
         )
         let defaults = UserDefaults.standard

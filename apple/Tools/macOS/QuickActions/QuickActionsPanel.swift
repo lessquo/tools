@@ -18,13 +18,15 @@ final class QuickActionsPanel {
 
     private let llmService: LLMService
     private let hfService: HFService
+    private let modelService: ModelService
     private let actionStore: ActionStore
     private let menuHandler = ActionMenuHandler()
     private var panelOrigin: CGPoint = .zero
 
-    init(llmService: LLMService, hfService: HFService, actionStore: ActionStore) {
+    init(llmService: LLMService, hfService: HFService, modelService: ModelService, actionStore: ActionStore) {
         self.llmService = llmService
         self.hfService = hfService
+        self.modelService = modelService
         self.actionStore = actionStore
         menuHandler.onPick = { [weak self] action in
             self?.handleMenuPick(action)
@@ -74,6 +76,7 @@ final class QuickActionsPanel {
         let service = ActionsService(
             llm: llmService,
             hfService: hfService,
+            modelService: modelService,
             modelIDProvider: modelIDProvider
         )
         self.service = service

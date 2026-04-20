@@ -2,6 +2,7 @@ import SwiftUI
 
 struct QuickActionsView: View {
     @Environment(HFService.self) private var hfService
+    @Environment(ModelService.self) private var modelService
     @Environment(ModelsViewState.self) private var modelsState
     @Environment(ExploreViewState.self) private var exploreState
     @Environment(MainViewState.self) private var mainViewState
@@ -27,8 +28,8 @@ struct QuickActionsView: View {
                     QuickstartModel(
                         selectedID: $quickActionsService.modelID,
                         label: "Text-generation model",
-                        displayName: hfService.displayName(id: quickActionsService.modelID),
-                        isReady: hfService.isModelReady(id: quickActionsService.modelID),
+                        modelName: modelService.modelName(id: quickActionsService.modelID),
+                        isReady: modelService.isModelReady(id: quickActionsService.modelID),
                         primaryOption: nil,
                         options: hfService.downloadedModels(for: .quickActions).map {
                             QuickstartModelOption(id: $0.id.rawValue, name: $0.id.name)
@@ -63,14 +64,19 @@ struct QuickActionsView: View {
 }
 
 #Preview {
+    let hf = HFService()
+    let apple = AppleSpeechService()
+    let model = ModelService(hfService: hf, appleSpeechService: apple)
     QuickActionsView()
         .environment(QuickActionsService(
             llmService: LLMService(),
-            hfService: HFService(),
+            hfService: hf,
+            modelService: model,
             actionStore: ActionStore()
         ))
         .environment(MainViewState())
-        .environment(HFService())
+        .environment(hf)
+        .environment(model)
         .environment(ModelsViewState())
         .environment(ExploreViewState())
         .environment(PermissionsService())

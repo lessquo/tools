@@ -14,6 +14,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     let llmService: LLMService
     let hfService: HFService
+    let appleSpeechService: AppleSpeechService
+    let modelService: ModelService
     let actionStore: ActionStore
     let dictationService: DictationService
     let quickActionsService: QuickActionsService
@@ -21,14 +23,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         let llmService = LLMService()
         let hfService = HFService()
+        let appleSpeechService = AppleSpeechService()
+        let modelService = ModelService(hfService: hfService, appleSpeechService: appleSpeechService)
         let actionStore = ActionStore()
         self.llmService = llmService
         self.hfService = hfService
+        self.appleSpeechService = appleSpeechService
+        self.modelService = modelService
         self.actionStore = actionStore
-        self.dictationService = DictationService(hfService: hfService)
+        self.dictationService = DictationService(hfService: hfService, appleSpeechService: appleSpeechService)
         self.quickActionsService = QuickActionsService(
             llmService: llmService,
             hfService: hfService,
+            modelService: modelService,
             actionStore: actionStore
         )
         super.init()
@@ -36,6 +43,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         permissionsService.startPolling()
+        Task { await appleSpeechService.refresh() }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.dictationService.launch()

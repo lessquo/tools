@@ -26,6 +26,7 @@ final class DictationService {
     }
 
     private let hfService: HFService
+    private let appleSpeechService: AppleSpeechService
     private let audio = AudioCaptureService()
     private let stt: STTService
     private let monitor = ShortcutMonitor()
@@ -35,9 +36,10 @@ final class DictationService {
     private var beginTask: Task<Void, Never>?
     private var preloadTask: Task<Void, Never>?
 
-    init(hfService: HFService) {
+    init(hfService: HFService, appleSpeechService: AppleSpeechService) {
         self.hfService = hfService
-        let stt = STTService(hfService: hfService)
+        self.appleSpeechService = appleSpeechService
+        let stt = STTService(hfService: hfService, appleSpeechService: appleSpeechService)
         self.stt = stt
         self.panel = DictationPanel(audio: audio, stt: stt)
 
@@ -46,7 +48,7 @@ final class DictationService {
         self.isEnabled = defaults.bool(forKey: Self.enabledKey)
         self.shortcut = Shortcut.load(forKey: Self.shortcutKey, default: .dictationDefault)
         let savedModelID = defaults.string(forKey: Self.modelIDKey) ?? ""
-        self.modelID = savedModelID.isEmpty ? STTService.appleSpeechID : savedModelID
+        self.modelID = savedModelID.isEmpty ? AppleSpeechService.modelID : savedModelID
 
         monitor.onPress = { [weak self] in self?.beginDictation() }
         monitor.onRelease = { [weak self] in self?.endDictation() }
@@ -91,10 +93,10 @@ final class DictationService {
 
         preloadTask?.cancel()
         guard !id.isEmpty else { return }
-        preloadTask = Task { [stt, hfService] in
+        preloadTask = Task { [stt, appleSpeechService] in
             try? await stt.loadModel(id: id)
-            if id == STTService.appleSpeechID {
-                await hfService.refreshAppleSpeechStatus()
+            if id == AppleSpeechService.modelID {
+                await appleSpeechService.refresh()
             }
         }
     }

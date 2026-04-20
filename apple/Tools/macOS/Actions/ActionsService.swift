@@ -21,13 +21,15 @@ final class ActionsService {
     private let clipboard = ClipboardService()
     private let llm: LLMService
     private let hfService: HFService
+    private let modelService: ModelService
     private let modelIDProvider: () -> String
     private var savedClipboard: String?
     private var currentTask: Task<Void, Never>?
 
-    init(llm: LLMService, hfService: HFService, modelIDProvider: @escaping () -> String) {
+    init(llm: LLMService, hfService: HFService, modelService: ModelService, modelIDProvider: @escaping () -> String) {
         self.llm = llm
         self.hfService = hfService
+        self.modelService = modelService
         self.modelIDProvider = modelIDProvider
     }
 
@@ -104,7 +106,7 @@ final class ActionsService {
 
     private func runLLM(prompt: String, onChunk: @escaping (String) -> Void) async throws -> String {
         let modelID = modelIDProvider()
-        guard hfService.isModelReady(id: modelID) else {
+        guard modelService.isModelReady(id: modelID) else {
             throw LLMRunError.noModel
         }
 

@@ -4,8 +4,6 @@ import Foundation
 @MainActor
 final class STTService {
 
-    static let appleSpeechID = "apple:speech"
-
     @MainActor
     protocol Backend {
         func transcribe(pcm: [Float], sampleRate: Double) async throws -> String
@@ -23,9 +21,11 @@ final class STTService {
     private var backend: (any Backend)?
     private var loadedModelID: String?
     private let hfService: HFService
+    private let appleSpeechService: AppleSpeechService
 
-    init(hfService: HFService) {
+    init(hfService: HFService, appleSpeechService: AppleSpeechService) {
         self.hfService = hfService
+        self.appleSpeechService = appleSpeechService
     }
 
     func loadModel(id: String) async throws {
@@ -52,8 +52,9 @@ final class STTService {
     }
 
     private func makeBackend(id: String) async throws -> any Backend {
-        if id == Self.appleSpeechID {
-            return try await AppleSpeechService()
+        if id == AppleSpeechService.modelID {
+            try await appleSpeechService.prepare()
+            return appleSpeechService
         }
         return try ParakeetService(directory: hfService.modelDirectory(for: id))
     }

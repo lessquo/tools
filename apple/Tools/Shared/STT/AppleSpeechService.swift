@@ -2,12 +2,26 @@ import AVFAudio
 import Foundation
 import Speech
 
+@Observable
 @MainActor
-final class AppleSpeechService: STTService.Backend {
+final class AppleSpeechService: STTService.Backend, ModelService.Provider {
 
-    private let locale: Locale
+    static let modelID = "apple:speech"
 
-    init(preferredLocale: Locale = .current) async throws {
+    private(set) var isInstalled: Bool = false
+    private var preparedLocale: Locale?
+
+    func modelName(id: String) -> String? {
+        id == Self.modelID ? "Apple Speech" : nil
+    }
+
+    func refresh() async {
+        isInstalled = await Self.isLocaleInstalled()
+    }
+
+    func prepare(preferredLocale: Locale = .current) async throws {
+        if preparedLocale != nil { return }
+
         try await Self.requestAuthorization()
 
         let supported = await SpeechTranscriber.supportedLocales
@@ -19,11 +33,14 @@ final class AppleSpeechService: STTService.Backend {
             try await Self.downloadAsset(for: resolved)
         }
 
-        self.locale = resolved
+        preparedLocale = resolved
+        isInstalled = true
     }
 
     func transcribe(pcm: [Float], sampleRate: Double) async throws -> String {
         guard !pcm.isEmpty else { return "" }
+        try await prepare()
+        guard let locale = preparedLocale else { throw AppleSpeechError.assetUnavailable }
 
         let transcriber = SpeechTranscriber(
             locale: locale,
@@ -112,6 +129,13 @@ final class AppleSpeechService: STTService.Backend {
         }
         return buffer
     }
+
+    private static func isLocaleInstalled(_ locale: Locale = .current) async -> Bool {
+        let installed = await SpeechTranscriber.installedLocales
+        if installed.contains(where: { $0.identifier == locale.identifier }) { return true }
+        let lang = locale.language.languageCode?.identifier
+        return installed.contains { $0.language.languageCode?.identifier == lang }
+    }
 }
 
 enum AppleSpeechError: LocalizedError {
@@ -128,14 +152,5 @@ enum AppleSpeechError: LocalizedError {
         case .bufferAllocationFailed:
             return "Failed to allocate an audio buffer for transcription."
         }
-    }
-}
-
-extension AppleSpeechService {
-    static func isLocaleInstalled(_ locale: Locale = .current) async -> Bool {
-        let installed = await SpeechTranscriber.installedLocales
-        if installed.contains(where: { $0.identifier == locale.identifier }) { return true }
-        let lang = locale.language.languageCode?.identifier
-        return installed.contains { $0.language.languageCode?.identifier == lang }
     }
 }

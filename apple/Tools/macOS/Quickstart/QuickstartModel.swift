@@ -8,7 +8,7 @@ struct QuickstartModelOption: Identifiable, Hashable {
 struct QuickstartModel: View {
     @Binding var selectedID: String
     let label: String
-    let displayName: String
+    let modelName: String
     let isReady: Bool
     let primaryOption: QuickstartModelOption?
     let options: [QuickstartModelOption]
@@ -37,7 +37,7 @@ struct QuickstartModel: View {
                     Divider()
                     Button(browseMoreLabel) { openExplore() }
                 } label: {
-                    Text(displayName)
+                    Text(modelName)
                 }
                 .fixedSize()
                 .controlSize(.small)
