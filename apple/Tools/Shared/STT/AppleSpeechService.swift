@@ -34,7 +34,7 @@ final class AppleSpeechService: STTService.Backend, ModelService.Provider {
         }
 
         preparedLocale = resolved
-        isInstalled = true
+        await refresh()
     }
 
     func transcribe(pcm: [Float], sampleRate: Double) async throws -> String {
